@@ -16,6 +16,12 @@ export const API = {
     compareRates: '/customer-portal/rates/compare',
     quote: (id: string) => `/customer-portal/quotes/${encodeURIComponent(id)}`,
     book: '/customer-portal/shipments',
-    booking: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}`
+    bookings: '/customer-portal/bookings',
+    booking: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}`,
+    bookingTracking: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/tracking`,
+    bookingLabel: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/label`,
+    shipmentTracking: (id: string) => `/customer-portal/shipments/${encodeURIComponent(id)}/tracking`,
+    addresses: '/customer-portal/addresses',
+    address: (id: string) => `/customer-portal/addresses/${encodeURIComponent(id)}`
   }
 } as const;

@@ -1,17 +1,34 @@
 /** Mirrors courier-service's customer portal API (module customerportal). */
+export type AddressType = 'HOME' | 'OFFICE' | 'WAREHOUSE';
+export type AddressUsage = 'PICKUP' | 'DELIVERY' | 'BOTH';
+
+/** One saved address. City and district come from the pincode master. */
 export interface PortalAddress {
   id: string;
-  addressType: string | null;
-  addressUsage: string | null;
+  addressType: AddressType | null;
+  addressUsage: AddressUsage | null;
   addressLine1: string;
   addressLine2: string | null;
   landmark: string | null;
-  stateId: string | null;
-  districtId: string | null;
-  cityId: string | null;
-  pincodeId: string | null;
+  pincode: string | null;
+  area: string | null;
+  city: string | null;
+  district: string | null;
   defaultPickup: boolean;
   defaultDelivery: boolean;
+  version: number | null;
+}
+
+export interface AddressRequest {
+  addressType: AddressType;
+  addressUsage: AddressUsage;
+  addressLine1: string;
+  addressLine2: string | null;
+  landmark: string | null;
+  pincode: string;
+  defaultPickup: boolean;
+  defaultDelivery: boolean;
+  expectedVersion: number | null;
 }
 
 export interface PortalProfile {
@@ -124,4 +141,99 @@ export interface Booking {
   message: string | null;
   submittedAt: string | null;
   bookedAt: string | null;
+}
+
+export interface Page<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+  hasNext: boolean;
+}
+
+/** One row of the booking history. */
+export interface BookingSummary {
+  bookingId: string;
+  status: BookingStatus;
+  providerCode: string;
+  providerName: string;
+  serviceName: string | null;
+  transportMode: string | null;
+  bookingReference: string | null;
+  trackingNumber: string | null;
+  pickupCity: string | null;
+  pickupPincode: string | null;
+  deliveryName: string | null;
+  deliveryCity: string | null;
+  deliveryPincode: string | null;
+  packageCount: number | null;
+  totalAmount: number;
+  currency: string;
+  createdAt: string;
+  bookedAt: string | null;
+}
+
+export interface BookingParty { name: string | null; phone: string | null; address: string | null; pincode: string | null; city: string | null; state: string | null; }
+
+export interface BookingParcel {
+  actualWeightKg: number | null;
+  volumetricWeightKg: number | null;
+  chargeableWeightKg: number | null;
+  packageCount: number | null;
+  length: number | null;
+  breadth: number | null;
+  height: number | null;
+  dimensionUnit: string | null;
+  contents: string | null;
+  declaredValue: number | null;
+  paymentMode: string | null;
+}
+
+/** One booking in full: as quoted and booked. Amounts are the frozen quote's. */
+export interface BookingDetail {
+  bookingId: string;
+  quoteId: string;
+  status: BookingStatus;
+  providerCode: string;
+  providerName: string;
+  serviceName: string | null;
+  transportMode: string | null;
+  etaMinDays: number | null;
+  etaMaxDays: number | null;
+  bookingReference: string | null;
+  trackingNumber: string | null;
+  labelDownloadable: boolean;
+  message: string | null;
+  pickup: BookingParty;
+  delivery: BookingParty;
+  parcel: BookingParcel | null;
+  charges: BreakdownLine[];
+  totalAmount: number;
+  currency: string;
+  submittedAt: string | null;
+  bookedAt: string | null;
+  createdAt: string;
+}
+
+export interface TrackingEvent { at: string | null; status: string | null; location: string | null; description: string | null; }
+
+export interface TrackingView {
+  bookingId: string;
+  providerName: string;
+  trackingNumber: string | null;
+  available: boolean;
+  status: string | null;
+  currentLocation: string | null;
+  events: TrackingEvent[];
+  message: string | null;
+  retrievedAt: string;
+}
+
+/** A counter-booked shipment's history, newest first. */
+export interface ShipmentTracking {
+  shipment: PortalShipment;
+  steps: { status: ShipmentStatus; at: string; location: string | null }[];
 }

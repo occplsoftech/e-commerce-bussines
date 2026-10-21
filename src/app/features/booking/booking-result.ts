@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal } fro
 import { CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PortalService } from '@core/services/portal.service';
-import { Booking } from '@core/models/portal.model';
+import { BookingDetail } from '@core/models/portal.model';
 import { BookingDraftService } from './booking-draft.service';
 import { BookingSteps } from './booking-steps';
 
@@ -42,7 +42,8 @@ import { BookingSteps } from './booking-steps';
             <dt>Amount</dt><dd>{{ b.totalAmount | currency: b.currency : 'symbol' : '1.2-2' }}</dd>
           </dl>
           <div class="actions">
-            <a class="btn btn--ghost" routerLink="/dashboard">Go to dashboard</a>
+            @if (b.status === 'FAILED') { <a class="btn btn--ghost" routerLink="/dashboard">Go to dashboard</a> }
+            @else { <a class="btn btn--ghost" [routerLink]="['/shipments', b.bookingId]">View shipment{{ b.labelDownloadable ? ' and label' : '' }}</a> }
             @if (b.status === 'FAILED') { <a class="btn btn--primary" [routerLink]="['/book/rates', b.quoteId]">Choose another courier</a> }
             @else { <a class="btn btn--primary" routerLink="/book" (click)="startNew()">Book another shipment</a> }
           </div>
@@ -68,7 +69,7 @@ export class BookingResult implements OnInit {
   readonly bookingId = input.required<string>();
   private readonly portal = inject(PortalService);
   private readonly drafts = inject(BookingDraftService);
-  readonly booking = signal<Booking | null>(null);
+  readonly booking = signal<BookingDetail | null>(null);
   readonly error = signal<string | null>(null);
 
   ngOnInit(): void {

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.0 — 2026-10-21 (customer portal phase 5)
+
+- Shipments: every booking made in the portal, newest first, filter (all, booked, awaiting confirmation, not booked),
+  paging; a table on desktop and cards on phones.
+- Shipment page: courier and service, tracking number, courier reference, estimated delivery, pickup and delivery,
+  parcel, the price confirmed at booking, live tracking from the courier (refresh) and "Download label" (PDF fetched
+  through the server; OCCPL network labels are printed at the branch, so none is offered). Clear messages for
+  awaiting-confirmation and not-booked bookings, and when the courier has no label or tracking yet.
+- Dashboard: tracking numbers open the shipment's status history.
+- Profile: address book — add, edit, remove; pincode-based (city and district shown from the pincode); default pickup and
+  delivery address. Booking form: "Use a saved address", and the default pickup/delivery address fills an empty form.
+- Booking result links to the shipment page. Tests: 30.
+
 ## 0.3.0 — 2026-10-21 (customer portal phase 4)
 
 - Confirm booking: courier, full price breakdown, shipment summary, confirmation checkbox, "Book for ₹…".

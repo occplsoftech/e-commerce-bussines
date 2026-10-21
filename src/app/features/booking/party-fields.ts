@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, effect, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, switchMap, catchError, of } from 'rxjs';
 import { PortalService } from '@core/services/portal.service';
-import { PincodeInfo } from '@core/models/portal.model';
+import { PincodeInfo, PortalAddress } from '@core/models/portal.model';
 import { PINCODE } from './booking-validators';
 
 /** Contact + address + pincode for pickup or delivery. A valid pincode fills the city and shows coverage. */
@@ -14,6 +14,15 @@ import { PINCODE } from './booking-validators';
   template: `
     <fieldset class="app-card party" [formGroup]="group()">
       <legend class="text-h2">{{ title() }}</legend>
+      @if (saved().length > 0) {
+        <div class="field">
+          <label [for]="id('saved')">Use a saved address</label>
+          <select [id]="id('saved')" (change)="useSaved($any($event.target).value)">
+            <option value="">— Choose —</option>
+            @for (a of saved(); track a.id) { <option [value]="a.id">{{ label(a) }}</option> }
+          </select>
+        </div>
+      }
       <div class="grid-2">
         <div class="field">
           <label [for]="id('name')">{{ nameLabel() }} <span class="req">*</span></label>
@@ -74,6 +83,10 @@ export class PartyFields implements OnInit {
   readonly title = input.required<string>();
   readonly nameLabel = input('Contact name');
   readonly prefix = input.required<string>();
+  /** Saved addresses to offer; the default one for {@link kind} fills an empty form once. */
+  readonly saved = input<PortalAddress[]>([]);
+  readonly kind = input<'pickup' | 'delivery' | null>(null);
+  private defaultApplied = false;
 
   private readonly portal = inject(PortalService);
   private readonly destroyRef = inject(DestroyRef);
@@ -101,6 +114,36 @@ export class PartyFields implements OnInit {
       const city = this.group().get('city')!;
       if (info?.known && info.city && !city.value) city.setValue(info.city);
     });
+  }
+
+  constructor() {
+    effect(() => {
+      const list = this.saved();
+      if (this.defaultApplied || list.length === 0) return;
+      this.defaultApplied = true;
+      const wanted = list.find((a) => this.kind() === 'pickup' ? a.defaultPickup : this.kind() === 'delivery' && a.defaultDelivery);
+      if (wanted && !this.group().get('address')!.value && !this.group().get('pincode')!.value) this.apply(wanted);
+    });
+  }
+
+  useSaved(id: string): void {
+    const a = this.saved().find((x) => x.id === id);
+    if (a) this.apply(a);
+  }
+
+  /** Fills address, pincode and city; name, phone and state stay as typed. */
+  private apply(a: PortalAddress): void {
+    const address = [a.addressLine1, a.addressLine2, a.landmark ? 'Near ' + a.landmark : null].filter((x) => !!x).join(', ');
+    this.group().patchValue({ address: address.slice(0, 300), pincode: a.pincode ?? '', city: a.city ?? this.group().get('city')!.value });
+    this.group().markAsDirty();
+  }
+
+  label(a: PortalAddress): string {
+    return [a.addressLine1, a.city, a.pincode].filter((x) => !!x).join(', ') + (this.isDefault(a) ? ' (default)' : '');
+  }
+
+  private isDefault(a: PortalAddress): boolean {
+    return this.kind() === 'pickup' ? a.defaultPickup : this.kind() === 'delivery' ? a.defaultDelivery : false;
   }
 
   id(field: string): string { return `${this.prefix()}-${field}`; }

@@ -19,6 +19,19 @@ export class ApiService {
     return this.http.post<ApiResponse<T>>(this.base + path, body, { headers: headers ? new HttpHeaders(headers) : undefined })
       .pipe(map((r) => r.data));
   }
+
+  put<T>(path: string, body: unknown): Observable<T> {
+    return this.http.put<ApiResponse<T>>(this.base + path, body).pipe(map((r) => r.data));
+  }
+
+  delete(path: string): Observable<void> {
+    return this.http.delete<void>(this.base + path);
+  }
+
+  /** A file download (e.g. a label PDF); not wrapped in ApiResponse. */
+  blob(path: string): Observable<Blob> {
+    return this.http.get(this.base + path, { responseType: 'blob' });
+  }
 }
 
 function toParams(query?: Record<string, unknown>): HttpParams {

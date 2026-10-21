@@ -56,7 +56,7 @@ import { STATUS_VIEW } from '@shared/utils/shipment-status';
               <tbody>
                 @for (s of data()!.recentShipments; track s.id) {
                   <tr>
-                    <td class="mono">{{ s.trackingNumber }}</td>
+                    <td class="mono"><a [routerLink]="['/shipments/track', s.id]">{{ s.trackingNumber || s.shipmentNumber }}</a></td>
                     <td>{{ s.bookingDate ? (s.bookingDate | date: 'mediumDate') : (s.createdAt | date: 'mediumDate') }}</td>
                     <td>{{ s.receiverName || '—' }}</td>
                     <td class="num-tabular">{{ s.packages ?? '—' }}</td>
