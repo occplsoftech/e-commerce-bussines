@@ -2,6 +2,8 @@ import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from '@core/guards/auth.guard';
 
 export const routes: Routes = [
+  // First, so that the bare address is redirected instead of matching the (empty-path) sign-in layout with no child.
+  { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   {
     path: '',
     loadComponent: () => import('@layouts/auth-layout').then((m) => m.AuthLayout),
@@ -26,7 +28,6 @@ export const routes: Routes = [
       { path: 'shipments/track/:shipmentId', loadComponent: () => import('@features/shipments/shipment-tracking').then((m) => m.ShipmentTracking), title: 'Track shipment · OCCPL SOFTECH' },
       { path: 'shipments/:bookingId', loadComponent: () => import('@features/shipments/booking-detail').then((m) => m.BookingDetail), title: 'Shipment · OCCPL SOFTECH' },
       { path: 'profile', loadComponent: () => import('@features/profile/profile').then((m) => m.Profile), title: 'Profile · OCCPL SOFTECH' },
-      { path: '', pathMatch: 'full', redirectTo: 'dashboard' }
     ]
   },
   { path: '**', redirectTo: 'dashboard' }

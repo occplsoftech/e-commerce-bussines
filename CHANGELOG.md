@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0 — 2026-10-21
+
+- Branding now matches the OCCPL platform portal: crimson primary (#d61f45 / #b3123a) with the indigo accent (#4338ca),
+  the platform's neutrals and status colours (previously indigo primary with a crimson accent). The favicon set is the
+  platform's (`favicon.ico`, 32 px, 192 px, Apple touch icon), served from the site root; theme colour is crimson.
+- nginx: only hashed build files are cached for a year; the favicon and other unhashed files revalidate.
+- Fixed: opening the bare address (`/`) showed the sign-in side panel with no form; it now redirects to the dashboard
+  (and to sign-in when signed out).
+
 ## 0.5.0 — 2026-10-21 (customer portal phase 6)
 
 - Security headers from one shared include (CSP without inline scripts, Permissions-Policy, COOP), correctly repeated in every
