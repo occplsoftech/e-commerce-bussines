@@ -12,6 +12,8 @@ export const API = {
   portal: {
     profile: '/customer-portal/profile',
     dashboard: '/customer-portal/dashboard',
-    pincode: (pincode: string) => `/customer-portal/pincodes/${encodeURIComponent(pincode)}`
+    pincode: (pincode: string) => `/customer-portal/pincodes/${encodeURIComponent(pincode)}`,
+    compareRates: '/customer-portal/rates/compare',
+    quote: (id: string) => `/customer-portal/quotes/${encodeURIComponent(id)}`
   }
 } as const;

@@ -67,3 +67,42 @@ export interface PincodeInfo {
   prepaidAvailable: boolean;
   odaApplicable: boolean;
 }
+
+export interface BreakdownLine { label: string; component: string; amount: number; }
+
+export interface RateOption {
+  optionId: string;
+  providerCode: string;
+  providerName: string;
+  serviceName: string | null;
+  transportMode: string | null;
+  etaMinDays: number | null;
+  etaMaxDays: number | null;
+  chargeableWeightKg: number | null;
+  baseFreight: number;
+  otherCharges: number;
+  markupPercent: number | null;
+  markupAmount: number;
+  taxAmount: number;
+  totalAmount: number;
+  currency: string;
+  breakdown: BreakdownLine[];
+  validUntil: string | null;
+}
+
+export interface UnavailableProvider { providerCode: string; providerName: string; reason: string | null; }
+
+export interface RateQuote {
+  quoteId: string;
+  status: 'OPEN' | 'BOOKED' | 'EXPIRED';
+  expiresAt: string;
+  pickupPincode: string;
+  deliveryPincode: string;
+  actualWeightKg: number;
+  volumetricWeightKg: number;
+  packageCount: number;
+  declaredValue: number;
+  paymentMode: string;
+  options: RateOption[];
+  unavailable: UnavailableProvider[];
+}

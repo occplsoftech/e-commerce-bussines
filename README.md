@@ -38,8 +38,8 @@ signals, OnPush, one `ApiService` that unwraps the `ApiResponse` envelope.
 
 ## Status
 
-Phase 2 of 6: sign-in, activation, password reset, dashboard, shipment details form with pincode checks, profile.
-Rate comparison, booking, tracking and labels follow (see the design document).
+Phase 3 of 6: sign-in, activation, password reset, dashboard, shipment details with pincode checks, rate comparison
+(sorting, breakdown, unavailable couriers, expiry), profile. Booking, tracking and labels follow (see the design document).
 
 ## Pipeline
 

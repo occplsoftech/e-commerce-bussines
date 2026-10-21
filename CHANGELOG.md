@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 — 2026-10-21 (customer portal phase 3)
+
+- "Compare rates" sends the shipment to courier-service and opens the comparison: every priced courier service
+  with delivery estimate (when the courier gives one), chargeable weight, total payable and a full breakdown
+  (freight, charges, OCCPL service charge, taxes). Sort by lowest price, fastest delivery or courier name.
+- Couriers that could not price the shipment are listed with the reason; an empty result says so.
+- Rates show their validity; an expired comparison must be refreshed before a service can be selected.
+- Selecting a service keeps the choice for the confirmation step (next phase). The browser never sends a price.
+- Shared five-step progress bar. Tests: 16 (sorting, compare request, validation message).
+
 ## 0.1.0 — 2026-10-21 (customer portal phase 2)
 
 - New Angular 20 app, same conventions as courier-web, OCCPL indigo/crimson brand, responsive down to phone width.

@@ -2,18 +2,20 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BookingDraftService, ShipmentDraft } from './booking-draft.service';
 import { PartyFields } from './party-fields';
+import { BookingSteps } from './booking-steps';
+import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { PortalService } from '@core/services/portal.service';
 import { mobileValidator, normaliseMobile, pincodeValidator, positiveNumber, wholeNumber } from './booking-validators';
 
-const STEPS = ['Shipment details', 'Compare rates', 'Select courier', 'Confirm booking', 'Booking result'] as const;
-
 /**
- * Step 1 of booking: pickup, delivery and package. "Compare rates" validates everything and keeps the
- * draft; the comparison itself is the next step (rates always come from the server, never from here).
+ * Step 1 of booking: pickup, delivery and package. "Compare rates" validates, keeps the draft and asks the
+ * server to price it with every courier (prices always come from the server, never from here).
  */
 @Component({
   selector: 'ecb-new-shipment',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, PartyFields],
+  imports: [ReactiveFormsModule, PartyFields, BookingSteps],
   template: `
     <section class="page">
       <div class="page__head">
@@ -23,13 +25,7 @@ const STEPS = ['Shipment details', 'Compare rates', 'Select courier', 'Confirm b
         </div>
       </div>
 
-      <ol class="steps" aria-label="Booking steps">
-        @for (s of steps; track s; let i = $index) {
-          <li [class.current]="i === step()" [class.done]="i < step()" [attr.aria-current]="i === step() ? 'step' : null">
-            <span class="steps__n">{{ i + 1 }}</span><span class="steps__label">{{ s }}</span>
-          </li>
-        }
-      </ol>
+      <ecb-booking-steps [current]="0" />
 
       <form [formGroup]="form" (ngSubmit)="compare()" novalidate class="form">
         <div class="grid-2 parties">
@@ -98,20 +94,14 @@ const STEPS = ['Shipment details', 'Compare rates', 'Select courier', 'Confirm b
 
         <div class="actions">
           <button class="btn btn--ghost" type="button" (click)="reset()">Clear</button>
-          <button class="btn btn--primary" type="submit">Compare rates <span class="material-icons">arrow_forward</span></button>
+          <button class="btn btn--primary" type="submit" [disabled]="comparing()">
+            {{ comparing() ? 'Asking couriers…' : 'Compare rates' }} <span class="material-icons">arrow_forward</span>
+          </button>
         </div>
       </form>
     </section>
   `,
   styles: [`
-    .steps { list-style:none; margin:0; padding:0; display:flex; gap:8px; flex-wrap:wrap; }
-    .steps li { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:var(--r-pill);
-      background:var(--surface); border:1px solid var(--surface-border); font:600 13px var(--font-sans); color:var(--content-muted); }
-    .steps__n { display:grid; place-items:center; width:22px; height:22px; border-radius:50%; background:var(--surface-muted); font-size:12px; }
-    .steps li.current { border-color:var(--brand-300); color:var(--brand-700); background:var(--brand-50); }
-    .steps li.current .steps__n { background:var(--brand-600); color:#fff; }
-    .steps li.done .steps__n { background:var(--success); color:#fff; }
-    @media (max-width: 700px) { .steps__label { display:none; } .steps li.current .steps__label { display:inline; } }
     .form { display:flex; flex-direction:column; gap:20px; }
     .parties { align-items:start; }
     .pkg { border:1px solid var(--surface-border); padding:20px; margin:0; display:flex; flex-direction:column; gap:14px; min-width:0; }
@@ -125,8 +115,9 @@ const STEPS = ['Shipment details', 'Compare rates', 'Select courier', 'Confirm b
 export class NewShipment {
   private readonly fb = inject(FormBuilder);
   private readonly drafts = inject(BookingDraftService);
-  readonly steps = STEPS;
-  readonly step = signal(0);
+  private readonly portal = inject(PortalService);
+  private readonly router = inject(Router);
+  readonly comparing = signal(false);
   readonly notice = signal<string | null>(null);
 
   readonly form = this.fb.nonNullable.group({
@@ -184,8 +175,16 @@ export class NewShipment {
       package: v.package as ShipmentDraft['package']
     };
     this.drafts.save(draft);
-    // The rate comparison service is being connected; until it is, nothing is priced here.
-    this.notice.set('Your shipment details are saved. Live rate comparison is being connected and will be available shortly.');
+    this.comparing.set(true);
+    this.portal.compareRates(draft).subscribe({
+      next: (quote) => this.router.navigate(['/book/rates', quote.quoteId]),
+      error: (e: HttpErrorResponse) => {
+        this.comparing.set(false);
+        this.notice.set(e.status === 400 || e.status === 422 || e.status === 429
+          ? (e.error?.message ?? 'Please check the shipment details.')
+          : 'Rates could not be compared right now. Please try again.');
+      }
+    });
   }
 
   reset(): void {
