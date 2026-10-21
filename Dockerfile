@@ -10,6 +10,7 @@ RUN npm run build -- --configuration=production
 FROM nginx:1.27-alpine AS runtime
 COPY --from=build /build/dist/e-commerce-business/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/security-headers.conf /etc/nginx/snippets/security-headers.conf
 # Writes assets/config.json from PORTAL_* environment variables at every container start.
 COPY docker/40-runtime-config.sh /docker-entrypoint.d/40-runtime-config.sh
 RUN chmod +x /docker-entrypoint.d/40-runtime-config.sh
