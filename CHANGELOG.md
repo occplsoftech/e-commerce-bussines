@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0 — 2026-10-21 (customer portal phase 6)
+
+- Security headers from one shared include (CSP without inline scripts, Permissions-Policy, COOP), correctly repeated in every
+  nginx location; `no-store` on `/api/`; immutable caching for hashed assets; production build no longer inlines critical CSS
+  (it needed an inline `onload`).
+- Release workflow deploys to the dev server (`courier-deploy.sh portal <sha>`), smoke-tests it (app, config, CSP header,
+  backend reachable through `/api`) and can roll back by SHA.
+- `docs/SECURITY.md` (controls, tests, residual risks), README deployment section.
+
 ## 0.4.0 — 2026-10-21 (customer portal phase 5)
 
 - Shipments: every booking made in the portal, newest first, filter (all, booked, awaiting confirmation, not booked),
