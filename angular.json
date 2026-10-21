@@ -25,6 +25,11 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "*",
+                "input": "src/assets/icons",
+                "output": "/"
               }
             ],
             "styles": [

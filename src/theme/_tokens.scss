@@ -1,29 +1,33 @@
 // =============================================================================
 // Design tokens for the OCCPL SOFTECH customer portal. Same variable names as
-// courier-web (src/theme/_tokens.scss) so components read alike; the palette is
-// OCCPL's indigo with a crimson accent, matching the OCCPL platform portal.
+// courier-web (src/theme/_tokens.scss) so components read alike. The palette is the
+// OCCPL platform portal's (frontend/admin-portal/src/styles/_tokens.scss): crimson
+// primary (#d61f45, strong #b3123a), indigo accent (#4338ca), the same neutrals and
+// status colours. The lighter and darker steps of each ramp are derived from those.
 // =============================================================================
 
 :root {
-  --brand-50:#eef2ff; --brand-100:#e0e7ff; --brand-200:#c7d2fe; --brand-300:#a5b4fc;
-  --brand-400:#818cf8; --brand-500:#6366f1; --brand-600:#4f46e5; --brand-700:#4338ca;
-  --brand-800:#3730a3; --brand-900:#312e81;
-  --accent-500:#e11d48; --accent-600:#be123c; --accent-50:#fff1f2;
+  // Primary = platform crimson.
+  --brand-50:#fdeef2; --brand-100:#fbdce4; --brand-200:#f6b9c8; --brand-300:#ef8ba5;
+  --brand-400:#e8456a; --brand-500:#de2d54; --brand-600:#d61f45; --brand-700:#b3123a;
+  --brand-800:#8b1a3a; --brand-900:#6b1230;
+  // Accent = platform indigo.
+  --accent-50:#ecebfb; --accent-500:#5b50d6; --accent-600:#4338ca;
 
-  --surface:#ffffff; --surface-muted:#f5f6fb; --surface-border:#e3e6f0;
-  --content-fg:#141a33; --content-muted:#606a85;
+  --surface:#ffffff; --surface-muted:#edeff3; --surface-border:#e0e3ec;
+  --content-fg:#1e2140; --content-muted:#5d6285;
 
-  --success:#16a34a; --success-bg:#dcfce7; --warning:#b45309; --warning-bg:#fef3c7;
-  --danger:#dc2626; --danger-bg:#fee2e2; --info:#4f46e5; --info-bg:#e0e7ff;
-  --neutral:#64748b; --neutral-bg:#eef2f6;
+  --success:#0b7a55; --success-bg:#e3f5ee; --warning:#a35f00; --warning-bg:#fff3dc;
+  --danger:#b42318; --danger-bg:#fde7ec; --info:#4338ca; --info-bg:#ecebfb;
+  --neutral:#5d6285; --neutral-bg:#eef0f5;
 
   --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px;
   --sp-8:32px; --sp-10:40px;
 
   --r-field:10px; --r-card:14px; --r-card-lg:18px; --r-pill:999px;
 
-  --shadow-sm:0 1px 2px rgba(20,26,51,.06);
-  --shadow:0 1px 3px rgba(20,26,51,.08), 0 1px 2px rgba(20,26,51,.04);
-  --shadow-hover:0 8px 24px rgba(20,26,51,.10);
+  --shadow-sm:0 1px 2px rgba(30,33,64,.06);
+  --shadow:0 1px 3px rgba(30,33,64,.08), 0 1px 2px rgba(30,33,64,.04);
+  --shadow-hover:0 8px 24px rgba(30,33,64,.10);
   --header-h:64px;
 }

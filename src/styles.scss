@@ -5,7 +5,7 @@
 html {
   color-scheme: light;
   @include mat.theme((
-    color: (primary: mat.$violet-palette, tertiary: mat.$rose-palette),
+    color: (primary: mat.$rose-palette, tertiary: mat.$violet-palette),
     typography: Inter,
     density: -1
   ));
