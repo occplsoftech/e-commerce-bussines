@@ -65,6 +65,7 @@ export class PortalLayout {
   protected readonly nav: NavItem[] = [
     { path: '/dashboard', label: 'Dashboard', icon: 'space_dashboard' },
     { path: '/book', label: 'Book shipment', icon: 'add_box' },
+    { path: '/shipments', label: 'Shipments', icon: 'local_shipping' },
     { path: '/profile', label: 'Profile', icon: 'storefront' }
   ];
 

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BookingDraftService, ShipmentDraft } from './booking-draft.service';
 import { PartyFields } from './party-fields';
@@ -6,6 +6,7 @@ import { BookingSteps } from './booking-steps';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PortalService } from '@core/services/portal.service';
+import { PortalAddress } from '@core/models/portal.model';
 import { mobileValidator, normaliseMobile, pincodeValidator, positiveNumber, wholeNumber } from './booking-validators';
 
 /**
@@ -29,8 +30,9 @@ import { mobileValidator, normaliseMobile, pincodeValidator, positiveNumber, who
 
       <form [formGroup]="form" (ngSubmit)="compare()" novalidate class="form">
         <div class="grid-2 parties">
-          <ecb-party-fields [group]="form.controls.pickup" title="Pickup" prefix="pickup" />
-          <ecb-party-fields [group]="form.controls.delivery" title="Delivery" nameLabel="Recipient name" prefix="delivery" />
+          <ecb-party-fields [group]="form.controls.pickup" title="Pickup" prefix="pickup" [saved]="pickupAddresses()" kind="pickup" />
+          <ecb-party-fields [group]="form.controls.delivery" title="Delivery" nameLabel="Recipient name" prefix="delivery"
+            [saved]="deliveryAddresses()" kind="delivery" />
         </div>
 
         <fieldset class="app-card pkg" formGroupName="package">
@@ -112,11 +114,14 @@ import { mobileValidator, normaliseMobile, pincodeValidator, positiveNumber, who
     @media (max-width: 560px) { .actions .btn { flex:1; } }
   `]
 })
-export class NewShipment {
+export class NewShipment implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly drafts = inject(BookingDraftService);
   private readonly portal = inject(PortalService);
   private readonly router = inject(Router);
+  /** Saved addresses offered in each half of the form; loading them is optional. */
+  readonly pickupAddresses = signal<PortalAddress[]>([]);
+  readonly deliveryAddresses = signal<PortalAddress[]>([]);
   readonly comparing = signal(false);
   readonly notice = signal<string | null>(null);
 
@@ -149,6 +154,16 @@ export class NewShipment {
       pincode: ['', [Validators.required, pincodeValidator]],
       city: ['', [Validators.required, Validators.maxLength(80)]],
       state: ['', [Validators.required, Validators.maxLength(80)]]
+    });
+  }
+
+  ngOnInit(): void {
+    this.portal.addresses().subscribe({
+      next: (list) => {
+        this.pickupAddresses.set(list.filter((a) => a.addressUsage !== 'DELIVERY'));
+        this.deliveryAddresses.set(list.filter((a) => a.addressUsage !== 'PICKUP'));
+      },
+      error: () => undefined
     });
   }
 
