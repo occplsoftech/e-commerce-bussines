@@ -117,9 +117,8 @@ export function sortOptions(options: RateOption[], key: SortKey): RateOption[] {
         @if (selected(); as s) {
           <div class="next app-card" role="status">
             <div><strong>{{ s.providerName }}</strong> {{ s.serviceName }} · {{ s.totalAmount | currency: s.currency : 'symbol' : '1.2-2' }}</div>
-            <button class="btn btn--primary" type="button" disabled title="Booking confirmation is the next step being connected">Continue to confirm</button>
+            <a class="btn btn--primary" [routerLink]="['/book/confirm', q.quoteId, s.optionId]">Continue to confirm <span class="material-icons">arrow_forward</span></a>
           </div>
-          <p class="text-caption">Booking confirmation is being connected; your selection is kept until then.</p>
         }
       } @else if (!error()) {
         <p class="text-caption">Loading rates…</p>

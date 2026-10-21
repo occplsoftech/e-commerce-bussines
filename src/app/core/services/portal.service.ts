@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { API } from '../config/api-endpoints';
-import { PincodeInfo, PortalDashboard, PortalProfile, RateQuote } from '../models/portal.model';
+import { Booking, PincodeInfo, PortalDashboard, PortalProfile, RateQuote } from '../models/portal.model';
 import { ShipmentDraft } from '@features/booking/booking-draft.service';
 
 /** The customer portal API. The server decides whose data this is — nothing here sends a customer id. */
@@ -20,4 +20,14 @@ export class PortalService {
   }
 
   quote(quoteId: string): Observable<RateQuote> { return this.api.get<RateQuote>(API.portal.quote(quoteId)); }
+
+  /**
+   * Books the chosen service. The same idempotency key must be reused for every retry of one confirmation,
+   * so the server returns the first booking instead of creating another.
+   */
+  book(quoteId: string, optionId: string, idempotencyKey: string): Observable<Booking> {
+    return this.api.post<Booking>(API.portal.book, { quoteId, optionId }, { 'Idempotency-Key': idempotencyKey });
+  }
+
+  booking(bookingId: string): Observable<Booking> { return this.api.get<Booking>(API.portal.booking(bookingId)); }
 }

@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -15,8 +15,9 @@ export class ApiService {
     return this.http.get<ApiResponse<T>>(this.base + path, { params: toParams(query) }).pipe(map((r) => r.data));
   }
 
-  post<T>(path: string, body: unknown): Observable<T> {
-    return this.http.post<ApiResponse<T>>(this.base + path, body).pipe(map((r) => r.data));
+  post<T>(path: string, body: unknown, headers?: Record<string, string>): Observable<T> {
+    return this.http.post<ApiResponse<T>>(this.base + path, body, { headers: headers ? new HttpHeaders(headers) : undefined })
+      .pipe(map((r) => r.data));
   }
 }
 

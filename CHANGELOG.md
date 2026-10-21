@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 — 2026-10-21 (customer portal phase 4)
+
+- Confirm booking: courier, full price breakdown, shipment summary, confirmation checkbox, "Book for ₹…".
+  One idempotency key per confirmation, reused on every retry, and the button is locked while a request is in flight,
+  so repeated clicks or a lost response never create a second booking.
+- Booking result: Booked (courier reference, tracking number or "issued when collected"), Not booked (nothing payable,
+  choose another courier) or Awaiting confirmation (do not book again; OCCPL confirms with the courier).
+- Expired rates and an already-booked quote are explained. Tests: 20.
+
 ## 0.2.0 — 2026-10-21 (customer portal phase 3)
 
 - "Compare rates" sends the shipment to courier-service and opens the comparison: every priced courier service

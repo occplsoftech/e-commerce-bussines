@@ -106,3 +106,22 @@ export interface RateQuote {
   options: RateOption[];
   unavailable: UnavailableProvider[];
 }
+
+export type BookingStatus = 'PENDING' | 'SUBMITTING' | 'BOOKED' | 'FAILED' | 'OUTCOME_UNKNOWN';
+
+export interface Booking {
+  bookingId: string;
+  quoteId: string;
+  optionId: string;
+  status: BookingStatus;
+  providerCode: string;
+  providerName: string;
+  totalAmount: number;
+  currency: string;
+  bookingReference: string | null;
+  trackingNumber: string | null;
+  labelAvailable: boolean;
+  message: string | null;
+  submittedAt: string | null;
+  bookedAt: string | null;
+}
