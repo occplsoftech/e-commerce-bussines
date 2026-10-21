@@ -1,0 +1,29 @@
+// =============================================================================
+// Design tokens for the OCCPL SOFTECH customer portal. Same variable names as
+// courier-web (src/theme/_tokens.scss) so components read alike; the palette is
+// OCCPL's indigo with a crimson accent, matching the OCCPL platform portal.
+// =============================================================================
+
+:root {
+  --brand-50:#eef2ff; --brand-100:#e0e7ff; --brand-200:#c7d2fe; --brand-300:#a5b4fc;
+  --brand-400:#818cf8; --brand-500:#6366f1; --brand-600:#4f46e5; --brand-700:#4338ca;
+  --brand-800:#3730a3; --brand-900:#312e81;
+  --accent-500:#e11d48; --accent-600:#be123c; --accent-50:#fff1f2;
+
+  --surface:#ffffff; --surface-muted:#f5f6fb; --surface-border:#e3e6f0;
+  --content-fg:#141a33; --content-muted:#606a85;
+
+  --success:#16a34a; --success-bg:#dcfce7; --warning:#b45309; --warning-bg:#fef3c7;
+  --danger:#dc2626; --danger-bg:#fee2e2; --info:#4f46e5; --info-bg:#e0e7ff;
+  --neutral:#64748b; --neutral-bg:#eef2f6;
+
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px;
+  --sp-8:32px; --sp-10:40px;
+
+  --r-field:10px; --r-card:14px; --r-card-lg:18px; --r-pill:999px;
+
+  --shadow-sm:0 1px 2px rgba(20,26,51,.06);
+  --shadow:0 1px 3px rgba(20,26,51,.08), 0 1px 2px rgba(20,26,51,.04);
+  --shadow-hover:0 8px 24px rgba(20,26,51,.10);
+  --header-h:64px;
+}

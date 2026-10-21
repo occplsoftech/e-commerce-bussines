@@ -1,0 +1,85 @@
+@use 'tokens';
+@use 'typography';
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: light;
+  @include mat.theme((
+    color: (primary: mat.$violet-palette, tertiary: mat.$rose-palette),
+    typography: Inter,
+    density: -1
+  ));
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: var(--font-sans);
+  background: var(--surface-muted);
+  color: var(--content-fg);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--brand-600); }
+
+.app-card {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow);
+}
+
+// Canonical page layout: every feature uses these, none redefines them.
+.page { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 1180px; margin: 0 auto; }
+.page__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.page__actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+// Form primitives shared by every form in the portal.
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field label { font: 600 13px var(--font-sans); color: var(--content-fg); }
+.field label .req { color: var(--accent-600); }
+.field input, .field select, .field textarea {
+  font: 400 14px var(--font-sans); color: var(--content-fg);
+  background: var(--surface); border: 1px solid var(--surface-border); border-radius: var(--r-field);
+  padding: 10px 12px; width: 100%; outline: none; transition: border-color .15s, box-shadow .15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--brand-500); box-shadow: 0 0 0 3px var(--brand-100);
+}
+.field input.invalid, .field select.invalid, .field textarea.invalid { border-color: var(--danger); }
+.field .hint { font: 400 12px var(--font-sans); color: var(--content-muted); }
+.field .error { font: 500 12px var(--font-sans); color: var(--danger); }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 900px) { .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: minmax(0, 1fr); } }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font: 600 14px var(--font-sans); border-radius: var(--r-field); padding: 10px 18px;
+  border: 1px solid transparent; cursor: pointer; text-decoration: none; transition: background .15s, border-color .15s;
+}
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn--primary { background: var(--brand-600); color: #fff; }
+.btn--primary:hover:not(:disabled) { background: var(--brand-700); }
+.btn--ghost { background: var(--surface); color: var(--content-fg); border-color: var(--surface-border); }
+.btn--ghost:hover:not(:disabled) { background: var(--surface-muted); }
+.btn--block { width: 100%; }
+
+.alert { padding: 10px 12px; border-radius: var(--r-field); font: 500 13px var(--font-sans); margin: 0; }
+.alert--error { background: var(--danger-bg); color: var(--danger); }
+.alert--info { background: var(--info-bg); color: var(--brand-800); }
+.alert--warn { background: var(--warning-bg); color: var(--warning); }
+.alert--ok { background: var(--success-bg); color: var(--success); }
+
+.badge { display: inline-block; padding: 3px 10px; border-radius: var(--r-pill); font: 600 12px var(--font-sans); background: var(--neutral-bg); color: var(--neutral); }
+.badge--ok { background: var(--success-bg); color: var(--success); }
+.badge--info { background: var(--info-bg); color: var(--brand-700); }
+.badge--warn { background: var(--warning-bg); color: var(--warning); }
+.badge--bad { background: var(--danger-bg); color: var(--danger); }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.toast-success { --mdc-snackbar-container-color: var(--success); }
+.toast-info { --mdc-snackbar-container-color: var(--info); }
+.toast-error { --mdc-snackbar-container-color: var(--danger); }

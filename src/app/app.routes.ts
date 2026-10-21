@@ -1,0 +1,27 @@
+import { Routes } from '@angular/router';
+import { authGuard, guestGuard } from '@core/guards/auth.guard';
+
+export const routes: Routes = [
+  {
+    path: '',
+    loadComponent: () => import('@layouts/auth-layout').then((m) => m.AuthLayout),
+    children: [
+      { path: 'login', canActivate: [guestGuard], loadComponent: () => import('@features/auth/login').then((m) => m.Login), title: 'Sign in · OCCPL SOFTECH' },
+      { path: 'forgot-password', loadComponent: () => import('@features/auth/forgot-password').then((m) => m.ForgotPassword), title: 'Forgot password · OCCPL SOFTECH' },
+      { path: 'reset-password', loadComponent: () => import('@features/auth/reset-password').then((m) => m.ResetPassword), title: 'Reset password · OCCPL SOFTECH' },
+      { path: 'verify-email', loadComponent: () => import('@features/auth/verify-email').then((m) => m.VerifyEmail), title: 'Activate account · OCCPL SOFTECH' }
+    ]
+  },
+  {
+    path: '',
+    canActivate: [authGuard],
+    loadComponent: () => import('@layouts/portal-layout').then((m) => m.PortalLayout),
+    children: [
+      { path: 'dashboard', loadComponent: () => import('@features/dashboard/dashboard').then((m) => m.Dashboard), title: 'Dashboard · OCCPL SOFTECH' },
+      { path: 'book', loadComponent: () => import('@features/booking/new-shipment').then((m) => m.NewShipment), title: 'Book a shipment · OCCPL SOFTECH' },
+      { path: 'profile', loadComponent: () => import('@features/profile/profile').then((m) => m.Profile), title: 'Profile · OCCPL SOFTECH' },
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' }
+    ]
+  },
+  { path: '**', redirectTo: 'dashboard' }
+];
