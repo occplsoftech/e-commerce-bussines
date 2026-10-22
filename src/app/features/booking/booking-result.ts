@@ -8,10 +8,12 @@ import { BookingDraftService } from './booking-draft.service';
 import { BookingSteps } from './booking-steps';
 
 /** Step 5: what happened — booked, failed (nothing booked) or awaiting confirmation with the courier. */
+import { CourierLogo } from '@shared/components/courier-logo';
+
 @Component({
   selector: 'ecb-booking-result',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icon, RouterLink, CurrencyPipe, BookingSteps],
+  imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, BookingSteps],
   template: `
     <section class="page">
       <div class="page__head"><div><h1 class="text-display">Booking result</h1></div></div>
@@ -22,6 +24,7 @@ import { BookingSteps } from './booking-steps';
           @switch (b.status) {
             @case ('BOOKED') {
               <ecb-icon name="task_alt" class="ok" />
+              <ecb-courier-logo [code]="b.providerCode" [name]="b.providerName" style="--logo-size:4rem" />
               <h2 class="text-h1">Booked with {{ b.providerName }}</h2>
             }
             @case ('FAILED') {

@@ -11,10 +11,12 @@ import { TransportModePipe } from '@features/booking/transport-mode.pipe';
 import { TrackingTimeline } from './tracking-timeline';
 
 /** One booking: who, what, the frozen price, live tracking from the courier and the label download. */
+import { CourierLogo } from '@shared/components/courier-logo';
+
 @Component({
   selector: 'ecb-booking-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icon, RouterLink, CurrencyPipe, DatePipe, DecimalPipe, TransportModePipe, TrackingTimeline],
+  imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, DatePipe, DecimalPipe, TransportModePipe, TrackingTimeline],
   template: `
     <section class="page">
       <div class="page__head">
@@ -41,7 +43,7 @@ import { TrackingTimeline } from './tracking-timeline';
           <div class="col">
             <article class="app-card box">
               <div class="row">
-                <h2 class="text-h2">{{ b.providerName }}@if (b.serviceName) { · {{ b.serviceName }} }</h2>
+                <h2 class="text-h2 prov"><ecb-courier-logo [code]="b.providerCode" [name]="b.providerName" style="--logo-size:2.5rem" /> {{ b.providerName }}@if (b.serviceName) { · {{ b.serviceName }} }</h2>
                 <span [class]="'badge badge--' + statusView(b).tone">{{ statusView(b).label }}</span>
               </div>
               @if (b.status === 'OUTCOME_UNKNOWN') {
@@ -127,6 +129,7 @@ import { TrackingTimeline } from './tracking-timeline';
   `,
   styles: [`
     .back { display:inline-flex; align-items:center; gap:4px; font:600 13px var(--font-sans); color:var(--content-muted); text-decoration:none; }
+    .prov { display:flex; align-items:center; gap:12px; margin:0; }
     .back ecb-icon { font-size:18px; }
     .layout { display:grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap:16px; align-items:start; }
     .col { display:flex; flex-direction:column; gap:16px; min-width:0; }

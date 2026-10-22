@@ -23,10 +23,12 @@ export function sortOptions(options: RateOption[], key: SortKey): RateOption[] {
 }
 
 /** Steps 2-3: the priced courier services for a quote, sortable, with the full breakdown, and selection. */
+import { CourierLogo } from '@shared/components/courier-logo';
+
 @Component({
   selector: 'ecb-compare-rates',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icon, RouterLink, CurrencyPipe, DatePipe, DecimalPipe, BookingSteps, TransportModePipe],
+  imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, DatePipe, DecimalPipe, BookingSteps, TransportModePipe],
   template: `
     <section class="page">
       <div class="page__head">
@@ -74,8 +76,11 @@ export function sortOptions(options: RateOption[], key: SortKey): RateOption[] {
               <article class="app-card option" [class.chosen]="selected()?.optionId === o.optionId">
                 <div class="option__main">
                   <div class="option__who">
+                    <ecb-courier-logo [code]="o.providerCode" [name]="o.providerName" />
+                    <div>
                     <div class="option__name">{{ o.providerName }}</div>
                     <div class="text-caption">{{ o.serviceName }}{{ o.transportMode ? ' · ' + (o.transportMode | titlecaseMode) : '' }}</div>
+                    </div>
                   </div>
                   <div class="option__facts">
                     <div><span class="k">Delivery</span><span class="v">{{ eta(o) }}</span></div>
@@ -134,6 +139,7 @@ export function sortOptions(options: RateOption[], key: SortKey): RateOption[] {
     .option:hover { box-shadow:var(--shadow-hover); }
     .option.chosen { border-color:var(--occpl-color-primary); border-left:5px solid var(--occpl-color-primary); box-shadow:var(--shadow-hover); }
     .option__main { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,2fr) auto; gap:16px; align-items:center; }
+    .option__who { display:flex; align-items:center; gap:14px; min-width:0; }
     .option__name { font:700 16px var(--font-sans); }
     .option__facts { display:flex; gap:24px; flex-wrap:wrap; }
     .option__facts .k { display:block; font:600 11px var(--font-sans); text-transform:uppercase; letter-spacing:.04em; color:var(--content-muted); }

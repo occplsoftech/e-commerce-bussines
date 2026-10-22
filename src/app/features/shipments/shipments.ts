@@ -15,10 +15,12 @@ const FILTERS: { value: BookingStatus | ''; label: string }[] = [
 ];
 
 /** The customer's bookings made in the portal, newest first, with a status filter and paging. */
+import { CourierLogo } from '@shared/components/courier-logo';
+
 @Component({
   selector: 'ecb-shipments',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icon, RouterLink, FormsModule, DatePipe, CurrencyPipe],
+  imports: [CourierLogo, Icon, RouterLink, FormsModule, DatePipe, CurrencyPipe],
   template: `
     <section class="page">
       <div class="page__head">
@@ -61,7 +63,7 @@ const FILTERS: { value: BookingStatus | ''; label: string }[] = [
                 @for (b of page()!.content; track b.bookingId) {
                   <tr>
                     <td><a [routerLink]="['/shipments', b.bookingId]">{{ b.createdAt | date: 'mediumDate' }}</a></td>
-                    <td>{{ b.providerName }}@if (b.serviceName) { <div class="sub">{{ b.serviceName }}</div> }</td>
+                    <td><span class="prov"><ecb-courier-logo [code]="b.providerCode" [name]="b.providerName" style="--logo-size:2rem" /><span>{{ b.providerName }}@if (b.serviceName) { <div class="sub">{{ b.serviceName }}</div> }</span></span></td>
                     <td>{{ b.pickupCity || b.pickupPincode }} → {{ b.deliveryCity || b.deliveryPincode }}</td>
                     <td>{{ b.deliveryName || '—' }}</td>
                     <td class="mono">{{ b.trackingNumber || '—' }}</td>
@@ -97,6 +99,7 @@ const FILTERS: { value: BookingStatus | ''; label: string }[] = [
     .list { padding:0; overflow:hidden; }
     .pad { padding:20px; }
     .empty { padding:40px 20px; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; }
+    .prov { display:flex; align-items:center; gap:10px; }
     .empty ecb-icon { font-size:40px; color:var(--content-muted); }
     .sub { font:400 12px var(--font-sans); color:var(--content-muted); }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }

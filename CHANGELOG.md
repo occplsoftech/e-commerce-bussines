@@ -9,6 +9,8 @@
   inputs with the indigo focus ring, neutral table headers and tinted row hover, and the crimson-topped sign-in card.
 - Booking flow: connected progress stepper (gradient track, tick for done steps), section labels on the form cards, rate
   cards with hover and a crimson edge on the chosen one, gradient price, platform-style sticky action bar.
+- Courier partner logo on rate options, the confirm screen, booking result, history and detail (`ecb-courier-logo`: official
+  logo file from `src/assets/couriers` when one is registered, otherwise a brand-coloured monogram badge).
 - Icons are inline SVG (`ecb-icon`); the Material Icons font and Google Fonts are gone, so the CSP no longer allows any
   external style or font host. Outfit is bundled.
 
