@@ -28,6 +28,8 @@ export const routes: Routes = [
       { path: 'shipments', loadComponent: () => import('@features/shipments/shipments').then((m) => m.Shipments), title: 'Shipments · OCCPL SOFTECH' },
       { path: 'shipments/track/:shipmentId', loadComponent: () => import('@features/shipments/shipment-tracking').then((m) => m.ShipmentTracking), title: 'Track shipment · OCCPL SOFTECH' },
       { path: 'shipments/:bookingId', loadComponent: () => import('@features/shipments/booking-detail').then((m) => m.BookingDetail), title: 'Shipment · OCCPL SOFTECH' },
+      { path: 'customers', loadComponent: () => import('@features/customers/customers').then((m) => m.Customers), title: 'My customers · OCCPL SOFTECH' },
+      { path: 'customers/:id', loadComponent: () => import('@features/customers/customer-detail').then((m) => m.CustomerDetail), title: 'Customer · OCCPL SOFTECH' },
       { path: 'profile', loadComponent: () => import('@features/profile/profile').then((m) => m.Profile), title: 'Profile · OCCPL SOFTECH' },
     ]
   },

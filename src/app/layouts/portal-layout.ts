@@ -125,6 +125,7 @@ export class PortalLayout {
     { path: '/rates', label: 'Rate calculator', icon: 'calculate' },
     { path: '/book', label: 'Book shipment', icon: 'add_box' },
     { path: '/shipments', label: 'Shipments', icon: 'local_shipping' },
+    { path: '/customers', label: 'My customers', icon: 'group' },
     { path: '/profile', label: 'Profile', icon: 'storefront' }
   ];
 

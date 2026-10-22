@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { API } from '../config/api-endpoints';
 import {
-  AddressRequest, EstimateRequest, Booking, BookingDetail, BookingStatus, BookingSummary, Page, PincodeInfo, PortalAddress,
+  AddressRequest, EstimateRequest, SubCustomer, SubCustomerRequest, Booking, BookingDetail, BookingStatus, BookingSummary, Page, PincodeInfo, PortalAddress,
   PortalDashboard, PortalProfile, RateQuote, ShipmentTracking, TrackingView
 } from '../models/portal.model';
 import { ShipmentDraft } from '@features/booking/booking-draft.service';
@@ -52,8 +52,24 @@ export class PortalService {
     return this.api.get<ShipmentTracking>(API.portal.shipmentTracking(shipmentId));
   }
 
-  addresses(): Observable<PortalAddress[]> { return this.api.get<PortalAddress[]>(API.portal.addresses); }
-  addAddress(body: AddressRequest): Observable<PortalAddress> { return this.api.post<PortalAddress>(API.portal.addresses, body); }
-  updateAddress(id: string, body: AddressRequest): Observable<PortalAddress> { return this.api.put<PortalAddress>(API.portal.address(id), body); }
-  removeAddress(id: string): Observable<void> { return this.api.delete(API.portal.address(id)); }
+  // Addresses: the signed-in customer's own, or — with `customerId` — those of one of the customers they registered.
+  addresses(customerId?: string): Observable<PortalAddress[]> {
+    return this.api.get<PortalAddress[]>(customerId ? API.portal.customerAddresses(customerId) : API.portal.addresses);
+  }
+  addAddress(body: AddressRequest, customerId?: string): Observable<PortalAddress> {
+    return this.api.post<PortalAddress>(customerId ? API.portal.customerAddresses(customerId) : API.portal.addresses, body);
+  }
+  updateAddress(id: string, body: AddressRequest, customerId?: string): Observable<PortalAddress> {
+    return this.api.put<PortalAddress>(customerId ? API.portal.customerAddress(customerId, id) : API.portal.address(id), body);
+  }
+  removeAddress(id: string, customerId?: string): Observable<void> {
+    return this.api.delete(customerId ? API.portal.customerAddress(customerId, id) : API.portal.address(id));
+  }
+
+  // The customers this customer registered.
+  customers(): Observable<SubCustomer[]> { return this.api.get<SubCustomer[]>(API.portal.customers); }
+  customer(id: string): Observable<SubCustomer> { return this.api.get<SubCustomer>(API.portal.customer(id)); }
+  addCustomer(body: SubCustomerRequest): Observable<SubCustomer> { return this.api.post<SubCustomer>(API.portal.customers, body); }
+  updateCustomer(id: string, body: SubCustomerRequest): Observable<SubCustomer> { return this.api.put<SubCustomer>(API.portal.customer(id), body); }
+  removeCustomer(id: string): Observable<void> { return this.api.delete(API.portal.customer(id)); }
 }

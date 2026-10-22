@@ -32,6 +32,7 @@ const PATHS: Record<string, string> = {
   filter: 'M4 5h16l-6 8v6l-4-2v-4z',
   check_circle: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8 12.5l3 3 5-6',
   schedule: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2',
+  group: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 13 0M16 4.3a3.5 3.5 0 0 1 0 6.4M18 14.5a6.5 6.5 0 0 1 3.5 5.5',
   chevron_left: 'M15 6l-6 6 6 6',
   chevron_right: 'M9 6l6 6-6 6'
 };
