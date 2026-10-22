@@ -28,6 +28,11 @@ export class ApiService {
     return this.http.delete<void>(this.base + path);
   }
 
+  /** A DELETE whose response carries data in the ApiResponse envelope. */
+  deleteFor<T>(path: string): Observable<T> {
+    return this.http.delete<ApiResponse<T>>(this.base + path).pipe(map((r) => r.data));
+  }
+
   /** A file download (e.g. a label PDF); not wrapped in ApiResponse. */
   blob(path: string): Observable<Blob> {
     return this.http.get(this.base + path, { responseType: 'blob' });

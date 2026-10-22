@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.0 — 2026-10-22
+
+- KYC (menu "KYC"): the business customer verifies e-mail and mobile with a code and uploads the business documents (GST
+  certificate, company PAN, business registration, authorised signatory ID and address proof, cancelled cheque); approved
+  automatically once everything is done. The dashboard reminds the customer until KYC is complete. Needs courier-service KYC (V133).
+
 ## 0.9.0 — 2026-10-22
 
 - Dashboard: colourful tiles (a large gradient total, one colour per stage), a bar chart of shipments by stage and a donut chart of
