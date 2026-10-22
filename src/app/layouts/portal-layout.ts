@@ -46,7 +46,11 @@ interface NavItem { path: string; label: string; icon: string; }
                   [attr.aria-label]="theme.mode() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
             <ecb-icon [name]="theme.mode() === 'dark' ? 'light_mode' : 'dark_mode'" />
           </button>
-          <span class="who"><span class="avatar">{{ userInitials() }}</span><span class="who__name">{{ customer.name() }}</span></span>
+          <span class="who">@if (customer.logo(); as logo) {
+              <img class="brand-logo" [src]="logo" [alt]="customer.name() + ' logo'" />
+            } @else {
+              <span class="avatar">{{ userInitials() }}</span>
+            }<span class="who__name">{{ customer.name() }}</span></span>
           <button class="btn btn--ghost signout" type="button" (click)="signOut()"><ecb-icon name="logout" /><span>Sign out</span></button>
         </header>
         <main class="content"><router-outlet /></main>
@@ -85,6 +89,7 @@ interface NavItem { path: string; label: string; icon: string; }
     .who { display:flex; align-items:center; gap:10px; font:600 .9rem var(--font-sans); }
     .avatar { display:grid; place-items:center; width:2.25rem; height:2.25rem; border-radius:999px; background:var(--occpl-gradient-button);
       color:#fff; font:700 .8rem var(--font-sans); }
+    .brand-logo { width:2.25rem; height:2.25rem; border-radius:10px; object-fit:contain; background:#fff; border:1px solid var(--surface-border); padding:2px; }
     .signout { min-height:2.25rem; padding:0 16px; }
     .content { width:100%; max-width:var(--occpl-content-max-width); margin:0 auto; padding:4px 4px 24px; }
     .scrim { display:none; }

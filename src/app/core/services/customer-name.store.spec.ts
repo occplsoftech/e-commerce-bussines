@@ -31,4 +31,15 @@ describe('CustomerNameStore', () => {
   it('keeps a real display name until the profile arrives', () => {
     expect(make('Shubham K', {}).name()).toBe('Shubham K');
   });
+
+  it('exposes the brand logo and a web address, but never a non-http link', () => {
+    const a = make('x@y.test', { contactPerson: 'A', logoDataUrl: 'data:image/png;base64,AA==', website: 'https://acme.in' });
+    a.load();
+    expect(a.logo()).toContain('data:image/png');
+    expect(a.website()).toBe('https://acme.in');
+    TestBed.resetTestingModule();
+    const b = make('x@y.test', { contactPerson: 'A', website: 'javascript:alert(1)' });
+    b.load();
+    expect(b.website()).toBeNull();
+  });
 });

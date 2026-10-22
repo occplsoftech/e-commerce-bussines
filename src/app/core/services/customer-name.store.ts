@@ -12,6 +12,9 @@ export class CustomerNameStore {
   private readonly auth = inject(AuthService);
   private readonly fromProfile = signal<string | null>(null);
   private loaded = false;
+  /** The customer's own brand logo (data URL) and website, from the profile. */
+  readonly logo = signal<string | null>(null);
+  readonly website = signal<string | null>(null);
 
   readonly name = computed(() => {
     const p = this.fromProfile();
@@ -24,8 +27,17 @@ export class CustomerNameStore {
     if (this.loaded) return;
     this.loaded = true;
     this.portal.profile().subscribe({
-      next: (p) => this.fromProfile.set(p.contactPerson?.trim() || p.companyName?.trim() || null),
+      next: (p) => {
+        this.fromProfile.set(p.contactPerson?.trim() || p.companyName?.trim() || null);
+        this.logo.set(p.logoDataUrl ?? null);
+        this.website.set(isWebUrl(p.website) ? p.website : null);
+      },
       error: () => { this.loaded = false; }
     });
   }
+}
+
+/** Only http(s) addresses become links: the value comes from a form, so never render anything else as an href. */
+function isWebUrl(url: string | null | undefined): url is string {
+  return !!url && /^https?:\/\/\S+$/.test(url);
 }
