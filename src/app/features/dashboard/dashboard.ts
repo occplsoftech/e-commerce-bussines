@@ -17,6 +17,9 @@ import { STATUS_VIEW } from '@shared/utils/shipment-status';
       <div class="page__head">
         <div>
           <h1 class="text-display">Hello{{ customer.name() ? ', ' + customer.name() : '' }}</h1>
+          @if (customer.website(); as site) {
+            <a class="site" [href]="site" target="_blank" rel="noopener noreferrer">{{ site }}</a>
+          }
           <p class="text-caption">Your shipments at a glance.</p>
         </div>
         <div class="page__actions">
@@ -79,6 +82,7 @@ import { STATUS_VIEW } from '@shared/utils/shipment-status';
     .recent { padding:0; overflow:hidden; }
     .recent__head { padding:18px 20px; border-bottom:1px solid var(--surface-border); }
     .recent__head h2 { margin:0; }
+    .site { font:500 13px var(--font-sans); }
     .pad { padding:20px; }
     .empty { display:flex; flex-direction:column; align-items:center; gap:10px; padding:40px 20px; text-align:center; color:var(--content-muted); }
     .empty ecb-icon { font-size:40px; color:var(--brand-300); }

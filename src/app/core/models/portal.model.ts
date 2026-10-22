@@ -40,6 +40,9 @@ export interface PortalProfile {
   email: string | null;
   gstNumber: string | null;
   panNumber: string | null;
+  website: string | null;
+  /** The customer's own brand logo as a data URL, or null. */
+  logoDataUrl: string | null;
   defaultPaymentMode: string | null;
   billingAddress: { line1: string | null; line2: string | null; city: string | null; state: string | null; pincode: string | null };
   addresses: PortalAddress[];

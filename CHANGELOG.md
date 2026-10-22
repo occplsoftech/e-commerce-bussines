@@ -7,6 +7,7 @@
   system until chosen), the platform shell (floating crimson sidebar with white active pill, collapsible to an icon rail,
   drawer on phones; glass header with crimson underline, avatar and sign-out), gradient primary buttons, taller rounded
   inputs with the indigo focus ring, neutral table headers and tinted row hover, and the crimson-topped sign-in card.
+- The customer's own brand logo (uploaded in courier-web) replaces the initials badge in the header; their website shows under the greeting (http/https links only).
 - The greeting and header use the customer's contact person (else company name) from the profile; an e-mail address is never shown as the name.
 - Booking steps are now four: Shipment details, Compare & select (rates and the choice on one page), Confirm booking, Booking result.
 - Booking flow: connected progress stepper (gradient track, tick for done steps), section labels on the form cards, rate
