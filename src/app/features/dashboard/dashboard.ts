@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { Icon } from '@shared/components/icon';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { AuthService } from '@core/auth/auth.service';
+import { CustomerNameStore } from '@core/services/customer-name.store';
 import { PortalService } from '@core/services/portal.service';
 import { PortalDashboard } from '@core/models/portal.model';
 import { STATUS_VIEW } from '@shared/utils/shipment-status';
@@ -16,7 +16,7 @@ import { STATUS_VIEW } from '@shared/utils/shipment-status';
     <section class="page">
       <div class="page__head">
         <div>
-          <h1 class="text-display">Hello, {{ auth.displayName() }}</h1>
+          <h1 class="text-display">Hello{{ customer.name() ? ', ' + customer.name() : '' }}</h1>
           <p class="text-caption">Your shipments at a glance.</p>
         </div>
         <div class="page__actions">
@@ -90,7 +90,7 @@ import { STATUS_VIEW } from '@shared/utils/shipment-status';
   `]
 })
 export class Dashboard implements OnInit {
-  protected readonly auth = inject(AuthService);
+  protected readonly customer = inject(CustomerNameStore);
   private readonly portal = inject(PortalService);
   readonly data = signal<PortalDashboard | null>(null);
   readonly error = signal<string | null>(null);
