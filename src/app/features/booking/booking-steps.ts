@@ -16,14 +16,21 @@ export const BOOKING_STEPS = ['Shipment details', 'Compare rates', 'Select couri
     </ol>
   `,
   styles: [`
-    .steps { list-style:none; margin:0; padding:0; display:flex; gap:8px; flex-wrap:wrap; }
-    .steps li { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:var(--r-pill);
-      background:var(--surface); border:1px solid var(--surface-border); font:600 13px var(--font-sans); color:var(--content-muted); }
-    .steps__n { display:grid; place-items:center; width:22px; height:22px; border-radius:50%; background:var(--surface-muted); font-size:12px; }
-    .steps li.current { border-color:var(--brand-300); color:var(--brand-700); background:var(--brand-50); }
-    .steps li.current .steps__n { background:var(--brand-600); color:#fff; }
-    .steps li.done .steps__n { background:var(--success); color:#fff; }
-    @media (max-width: 700px) { .steps__label { display:none; } .steps li.current .steps__label { display:inline; } }
+    :host { display:block; }
+    .steps { list-style:none; margin:0; padding:14px 20px; display:flex; align-items:center; gap:0; overflow-x:auto;
+      background:var(--occpl-color-surface-glass); backdrop-filter:blur(10px); border:1px solid var(--surface-border);
+      border-radius:var(--r-card); box-shadow:var(--shadow-sm); }
+    .steps li { display:flex; align-items:center; gap:10px; flex:1 1 auto; min-width:0; font:600 .9rem var(--font-sans); color:var(--content-muted); white-space:nowrap; }
+    .steps li:last-child { flex:0 0 auto; }
+    .steps li:not(:last-child)::after { content:''; flex:1 1 24px; min-width:20px; height:3px; margin:0 12px; border-radius:3px; background:var(--surface-border); }
+    .steps li.done:not(:last-child)::after { background:var(--occpl-gradient-button); }
+    .steps__n { display:grid; place-items:center; flex:none; width:2rem; height:2rem; border-radius:50%; background:var(--occpl-color-neutral-surface);
+      border:1px solid var(--surface-border); font:700 .85rem var(--font-sans); }
+    .steps li.current { color:var(--content-fg); }
+    .steps li.current .steps__n { background:var(--occpl-gradient-button); border-color:transparent; color:#fff; box-shadow:0 0 0 4px var(--occpl-color-info-surface); }
+    .steps li.done { color:var(--content-fg); }
+    .steps li.done .steps__n { background:var(--success-bg); border-color:var(--success); color:var(--success); }
+    @media (max-width: 56rem) { .steps__label { display:none; } .steps li.current .steps__label { display:inline; } .steps li:not(:last-child)::after { margin:0 8px; } }
   `]
 })
 export class BookingSteps {

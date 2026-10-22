@@ -73,8 +73,8 @@ import { PINCODE } from './booking-validators';
     </fieldset>
   `,
   styles: [`
-    .party { border:1px solid var(--surface-border); padding:20px; margin:0; display:flex; flex-direction:column; gap:14px; min-width:0; }
-    legend { padding:0 6px; margin-left:-6px; }
+    .party { border:1px solid var(--surface-border); padding:20px 20px 24px; margin:0; display:flex; flex-direction:column; gap:14px; min-width:0; }
+    legend { margin-left:8px; padding:3px 14px; border-radius:999px; background:var(--occpl-color-info-surface); color:var(--occpl-color-accent); font:700 .8rem var(--font-sans) !important; letter-spacing:.06em; text-transform:uppercase; }
     .coverage { display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:24px; }
   `]
 })

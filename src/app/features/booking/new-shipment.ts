@@ -107,8 +107,8 @@ import { mobileValidator, normaliseMobile, pincodeValidator, positiveNumber, who
   styles: [`
     .form { display:flex; flex-direction:column; gap:20px; }
     .parties { align-items:start; }
-    .pkg { border:1px solid var(--surface-border); padding:20px; margin:0; display:flex; flex-direction:column; gap:14px; min-width:0; }
-    legend { padding:0 6px; margin-left:-6px; }
+    .pkg { border:1px solid var(--surface-border); padding:20px 20px 24px; margin:0; display:flex; flex-direction:column; gap:14px; min-width:0; }
+    legend { margin-left:8px; padding:3px 14px; border-radius:999px; background:var(--occpl-color-info-surface); color:var(--occpl-color-accent); font:700 .8rem var(--font-sans) !important; letter-spacing:.06em; text-transform:uppercase; }
     .error { font:500 12px var(--font-sans); color:var(--danger); }
     .hint { font:400 12px var(--font-sans); color:var(--content-muted); margin:0; }
     .actions { display:flex; justify-content:flex-end; gap:12px; flex-wrap:wrap; }
