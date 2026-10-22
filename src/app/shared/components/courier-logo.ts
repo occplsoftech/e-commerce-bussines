@@ -1,7 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-
-/** Provider code → logo file in `src/assets/couriers` (served from `/couriers`). Add an entry when a file is dropped in. */
-const LOGO_FILES: Record<string, string> = {};
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { CourierLogoStore } from '@core/services/courier-logo.store';
 
 /** Badge colours per provider code (a monogram on this colour is shown when there is no logo file). */
 const BRAND: Record<string, string> = {
@@ -12,7 +10,7 @@ const BRAND: Record<string, string> = {
   OCCPL_NETWORK: '#b3123a'
 };
 
-/** A courier partner's logo, or a coloured monogram badge until a logo file is added. */
+/** A courier partner's logo as uploaded by the company, or a coloured monogram badge when there is none. */
 @Component({
   selector: 'ecb-courier-logo',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,7 +32,8 @@ const BRAND: Record<string, string> = {
 export class CourierLogo {
   readonly code = input.required<string>();
   readonly name = input.required<string>();
-  protected readonly file = computed(() => { const f = LOGO_FILES[this.code()]; return f ? `couriers/${f}` : null; });
+  private readonly store = inject(CourierLogoStore);
+  protected readonly file = computed(() => this.store.logos()[this.code()] ?? null);
   protected readonly colour = computed(() => BRAND[this.code()] ?? 'var(--occpl-color-accent)');
   protected readonly initials = computed(() => {
     const words = this.name().split(/[\s_-]+/).filter(Boolean);
