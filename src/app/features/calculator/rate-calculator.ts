@@ -24,6 +24,7 @@ type Lookup = { state: 'idle' } | { state: 'loading' } | { state: 'ok'; text: st
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Icon, CourierLogo, ReactiveFormsModule, RouterLink, CurrencyPipe, DecimalPipe, TransportModePipe],
   template: `
+    <div class="layout">
     <section class="calc">
       <header class="calc__banner">
         <span class="calc__badge"><ecb-icon name="calculate" /></span>
@@ -90,61 +91,78 @@ type Lookup = { state: 'idle' } | { state: 'loading' } | { state: 'ok'; text: st
           <p class="note"><ecb-icon name="check_circle" /> Rates only · GST inclusive · Press Book on a rate to continue</p>
         </form>
 
-        @if (quote(); as q) {
-          @if (modes().length > 1) {
-            <div class="filters" role="group" aria-label="Filter by mode">
-              <button type="button" class="pill" [class.pill--on]="mode() === ''" (click)="mode.set('')">All ({{ q.options.length }})</button>
-              @for (m of modes(); track m.mode) {
-                <button type="button" class="pill" [class.pill--on]="mode() === m.mode" (click)="mode.set(m.mode)">{{ m.mode | titlecaseMode }} ({{ m.count }})</button>
-              }
-            </div>
-          }
-
-          @if (q.options.length === 0) {
-            <p class="empty">No courier could price this. Check the pincodes and weight, or try again later.</p>
-          }
-
-          @for (o of shown(); track $index; let first = $first) {
-            <article class="rate">
-              <div class="rate__top">
-                <ecb-courier-logo [code]="o.providerCode" [name]="o.providerName" style="--logo-size:2.75rem" />
-                <div class="rate__who">
-                  <h2>{{ o.providerName }}</h2>
-                  <p>{{ o.serviceName }}{{ o.transportMode ? ' · ' + (o.transportMode | titlecaseMode) : '' }}</p>
-                </div>
-                <div class="rate__price">
-                  @if (o === cheapest()) { <span class="lowest">↓ Lowest</span> }
-                  <strong>{{ o.totalAmount | currency: o.currency : 'symbol' : '1.2-2' }}</strong>
-                  @if (o.chargeableWeightKg) { <small>@{{ o.totalAmount / o.chargeableWeightKg | currency: o.currency : 'symbol' : '1.2-2' }}/Kg</small> }
-                </div>
-              </div>
-              <div class="rate__meta">
-                @if (o.etaMinDays) { <span><ecb-icon name="schedule" /> {{ o.etaMinDays }}{{ o.etaMaxDays && o.etaMaxDays !== o.etaMinDays ? ' - ' + o.etaMaxDays : '' }} days</span> }
-                @if (o.chargeableWeightKg) { <span>Chargeable {{ o.chargeableWeightKg | number: '1.0-3' }} kg</span> }
-                <details class="rate__breakup">
-                  <summary>View breakup →</summary>
-                  <table>
-                    <tbody>
-                      @for (l of o.breakdown; track $index) { <tr><td>{{ l.label }}</td><td class="amt">{{ l.amount | currency: o.currency : 'symbol' : '1.2-2' }}</td></tr> }
-                      <tr class="sum"><td>Total</td><td class="amt">{{ o.totalAmount | currency: o.currency : 'symbol' : '1.2-2' }}</td></tr>
-                    </tbody>
-                  </table>
-                </details>
-              </div>
-              <button class="book" type="button" (click)="book()">Book — {{ o.totalAmount | currency: o.currency : 'symbol' : '1.2-2' }}</button>
-            </article>
-          }
-
-          @if (q.unavailable.length) {
-            <p class="unavail">Not available: @for (u of q.unavailable; track u.providerCode; let last = $last) { <strong>{{ u.providerName }}</strong>{{ last ? '' : ', ' }} }</p>
-          }
-        }
       </div>
     </section>
+
+    <section class="results" aria-live="polite" aria-label="Rates from all couriers">
+      <header class="results__head">
+        <h2>Rates from all couriers</h2>
+        @if (quote(); as q) { <span class="results__count">{{ q.options.length }} {{ q.options.length === 1 ? 'rate' : 'rates' }}</span> }
+      </header>
+      @if (loading()) {
+        <p class="results__hint">Asking every courier…</p>
+      } @else if (!quote()) {
+        <div class="results__empty">
+          <ecb-icon name="local_shipping" />
+          <p>Enter the pincodes and package on the left, then press <strong>Check rates</strong>. Every courier's price appears here.</p>
+        </div>
+      }
+      @if (quote(); as q) {
+        @if (modes().length > 1) {
+          <div class="filters" role="group" aria-label="Filter by mode">
+            <button type="button" class="pill" [class.pill--on]="mode() === ''" (click)="mode.set('')">All ({{ q.options.length }})</button>
+            @for (m of modes(); track m.mode) {
+              <button type="button" class="pill" [class.pill--on]="mode() === m.mode" (click)="mode.set(m.mode)">{{ m.mode | titlecaseMode }} ({{ m.count }})</button>
+            }
+          </div>
+        }
+
+        @if (q.options.length === 0) {
+          <p class="empty">No courier could price this. Check the pincodes and weight, or try again later.</p>
+        }
+
+        @for (o of shown(); track $index; let first = $first) {
+          <article class="rate">
+            <div class="rate__top">
+              <ecb-courier-logo [code]="o.providerCode" [name]="o.providerName" style="--logo-size:2.75rem" />
+              <div class="rate__who">
+                <h2>{{ o.providerName }}</h2>
+                <p>{{ o.serviceName }}{{ o.transportMode ? ' · ' + (o.transportMode | titlecaseMode) : '' }}</p>
+              </div>
+              <div class="rate__price">
+                @if (o === cheapest()) { <span class="lowest">↓ Lowest</span> }
+                <strong>{{ o.totalAmount | currency: o.currency : 'symbol' : '1.2-2' }}</strong>
+                @if (o.chargeableWeightKg) { <small>@{{ o.totalAmount / o.chargeableWeightKg | currency: o.currency : 'symbol' : '1.2-2' }}/Kg</small> }
+              </div>
+            </div>
+            <div class="rate__meta">
+              @if (o.etaMinDays) { <span><ecb-icon name="schedule" /> {{ o.etaMinDays }}{{ o.etaMaxDays && o.etaMaxDays !== o.etaMinDays ? ' - ' + o.etaMaxDays : '' }} days</span> }
+              @if (o.chargeableWeightKg) { <span>Chargeable {{ o.chargeableWeightKg | number: '1.0-3' }} kg</span> }
+              <details class="rate__breakup">
+                <summary>View breakup →</summary>
+                <table>
+                  <tbody>
+                    @for (l of o.breakdown; track $index) { <tr><td>{{ l.label }}</td><td class="amt">{{ l.amount | currency: o.currency : 'symbol' : '1.2-2' }}</td></tr> }
+                    <tr class="sum"><td>Total</td><td class="amt">{{ o.totalAmount | currency: o.currency : 'symbol' : '1.2-2' }}</td></tr>
+                  </tbody>
+                </table>
+              </details>
+            </div>
+            <button class="book" type="button" (click)="book()">Book — {{ o.totalAmount | currency: o.currency : 'symbol' : '1.2-2' }}</button>
+          </article>
+        }
+
+        @if (q.unavailable.length) {
+          <p class="unavail">Not available: @for (u of q.unavailable; track u.providerCode; let last = $last) { <strong>{{ u.providerName }}</strong>{{ last ? '' : ', ' }} }</p>
+        }
+      }
+    </section>
+    </div>
   `,
   styles: [`
     :host { display:block; }
-    .calc { max-width:44rem; margin:0 auto; background:var(--occpl-color-surface); border:1px solid var(--surface-border); border-radius:28px; overflow:hidden; box-shadow:var(--occpl-shadow-md); }
+    .layout { display:grid; grid-template-columns:minmax(0, 27rem) minmax(0, 1fr); gap:20px; align-items:start; max-width:76rem; margin:0 auto; }
+    .calc { position:sticky; top:96px; background:var(--occpl-color-surface); border:1px solid var(--surface-border); border-radius:28px; overflow:hidden; box-shadow:var(--occpl-shadow-md); }
     .calc__banner { display:flex; align-items:center; gap:16px; padding:22px 24px; color:#fff; background:var(--occpl-gradient-brand); }
     .calc__banner h1 { margin:0; font:800 1.4rem var(--font-display); letter-spacing:.04em; text-transform:uppercase; }
     .calc__banner p { margin:2px 0 0; opacity:.85; font-size:.95rem; }
@@ -178,6 +196,13 @@ type Lookup = { state: 'idle' } | { state: 'loading' } | { state: 'ok'; text: st
     .go { display:flex; align-items:center; justify-content:center; gap:10px; min-height:3.6rem; margin-top:6px; border:0; border-radius:22px; background:var(--occpl-gradient-button); color:#fff; font:800 1.1rem var(--font-sans); letter-spacing:.08em; text-transform:uppercase; cursor:pointer; box-shadow:var(--occpl-shadow-md); }
     .go:disabled { opacity:.6; cursor:wait; }
     .note { display:flex; align-items:center; justify-content:center; gap:8px; margin:0; font-size:.9rem; color:var(--content-muted); text-align:center; }
+    .results { display:flex; flex-direction:column; gap:12px; min-width:0; }
+    .results__head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 4px; }
+    .results__head h2 { margin:0; font:800 1.2rem var(--font-display); text-transform:uppercase; letter-spacing:.04em; }
+    .results__count { padding:4px 12px; border-radius:999px; background:var(--occpl-color-info-surface); color:var(--occpl-color-accent); font:700 .8rem var(--font-sans); }
+    .results__empty { display:flex; flex-direction:column; align-items:center; gap:10px; padding:56px 24px; text-align:center; color:var(--content-muted); border:2px dashed var(--surface-border); border-radius:24px; font-size:2.2rem; }
+    .results__empty p { margin:0; font-size:1rem; max-width:24rem; }
+    .results__hint { margin:0; color:var(--content-muted); }
     .filters { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
     .pill { padding:8px 18px; border:0; border-radius:14px; background:var(--occpl-color-neutral-surface); color:var(--content-muted); font:800 .8rem var(--font-sans); letter-spacing:.08em; text-transform:uppercase; cursor:pointer; }
     .pill--on { background:var(--occpl-color-text); color:var(--occpl-color-surface); }
@@ -200,6 +225,7 @@ type Lookup = { state: 'idle' } | { state: 'loading' } | { state: 'ok'; text: st
     .rate__breakup .sum td { font-weight:700; border-bottom:0; }
     .book { width:100%; min-height:3.2rem; border:0; background:var(--occpl-gradient-button); color:#fff; font:800 1rem var(--font-sans); letter-spacing:.1em; text-transform:uppercase; cursor:pointer; }
     .empty, .unavail { margin:8px 0 0; color:var(--content-muted); text-align:center; }
+    @media (max-width: 64rem) { .layout { grid-template-columns:minmax(0, 1fr); } .calc { position:static; } }
     @media (max-width: 560px) { .calc__body { padding:16px; } .big { font-size:1.25rem; } .rate__top { flex-wrap:wrap; } .rate__price { align-items:flex-start; } }
   `]
 })

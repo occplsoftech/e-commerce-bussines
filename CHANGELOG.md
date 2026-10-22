@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.1 — 2026-10-22
+
+- Rate calculator: two columns — the calculator on the left, every courier's rate on the right (stacked on tablets and phones).
+
 ## 0.8.0 — 2026-10-22
 
 - Rate calculator (menu "Rate calculator"): pickup and delivery pincode (city shown as soon as six digits are typed), boxes, total
