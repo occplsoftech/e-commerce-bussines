@@ -7,6 +7,7 @@
   system until chosen), the platform shell (floating crimson sidebar with white active pill, collapsible to an icon rail,
   drawer on phones; glass header with crimson underline, avatar and sign-out), gradient primary buttons, taller rounded
   inputs with the indigo focus ring, neutral table headers and tinted row hover, and the crimson-topped sign-in card.
+- Booking steps are now four: Shipment details, Compare & select (rates and the choice on one page), Confirm booking, Booking result.
 - Booking flow: connected progress stepper (gradient track, tick for done steps), section labels on the form cards, rate
   cards with hover and a crimson edge on the chosen one, gradient price, platform-style sticky action bar.
 - Courier partner logo on rate options, the confirm screen, booking result, history and detail (`ecb-courier-logo`). The
