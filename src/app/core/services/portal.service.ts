@@ -15,6 +15,8 @@ export class PortalService {
 
   profile(): Observable<PortalProfile> { return this.api.get<PortalProfile>(API.portal.profile); }
   dashboard(): Observable<PortalDashboard> { return this.api.get<PortalDashboard>(API.portal.dashboard); }
+  /** The logos the company uploaded for its couriers, by courier code (data URLs). */
+  courierLogos(): Observable<Record<string, string>> { return this.api.get<Record<string, string>>(API.portal.courierLogos); }
   pincode(pincode: string): Observable<PincodeInfo> { return this.api.get<PincodeInfo>(API.portal.pincode(pincode)); }
 
   /** Asks the server to price the draft with every courier. The draft carries no price; the server does all pricing. */

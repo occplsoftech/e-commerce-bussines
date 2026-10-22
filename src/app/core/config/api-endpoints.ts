@@ -21,6 +21,7 @@ export const API = {
     bookingTracking: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/tracking`,
     bookingLabel: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/label`,
     shipmentTracking: (id: string) => `/customer-portal/shipments/${encodeURIComponent(id)}/tracking`,
+    courierLogos: '/customer-portal/courier-logos',
     addresses: '/customer-portal/addresses',
     address: (id: string) => `/customer-portal/addresses/${encodeURIComponent(id)}`
   }

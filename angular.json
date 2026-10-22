@@ -30,11 +30,6 @@
                 "glob": "*",
                 "input": "src/assets/icons",
                 "output": "/"
-              },
-              {
-                "glob": "*.{svg,png,webp}",
-                "input": "src/assets/couriers",
-                "output": "/couriers"
               }
             ],
             "styles": [
