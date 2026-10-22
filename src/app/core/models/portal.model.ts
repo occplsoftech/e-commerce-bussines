@@ -241,6 +241,20 @@ export interface ShipmentTracking {
   steps: { status: ShipmentStatus; at: string; location: string | null }[];
 }
 
+/** The rate calculator's input: two pincodes and a package. Dimensions are optional. */
+export interface EstimateRequest {
+  pickupPincode: string;
+  deliveryPincode: string;
+  packageCount: number;
+  actualWeightKg: number;
+  declaredValue: number;
+  length: number | null;
+  breadth: number | null;
+  height: number | null;
+  dimensionUnit: 'CM' | 'IN';
+  paymentMode: 'PREPAID' | 'COD';
+}
+
 /** A customer this customer registered (the server records the registering customer as its parent). */
 export interface SubCustomer {
   id: string;

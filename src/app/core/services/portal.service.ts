@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { API } from '../config/api-endpoints';
 import {
-  AddressRequest, SubCustomer, SubCustomerRequest, Booking, BookingDetail, BookingStatus, BookingSummary, Page, PincodeInfo, PortalAddress,
+  AddressRequest, EstimateRequest, SubCustomer, SubCustomerRequest, Booking, BookingDetail, BookingStatus, BookingSummary, Page, PincodeInfo, PortalAddress,
   PortalDashboard, PortalProfile, RateQuote, ShipmentTracking, TrackingView
 } from '../models/portal.model';
 import { ShipmentDraft } from '@features/booking/booking-draft.service';
@@ -23,6 +23,9 @@ export class PortalService {
   compareRates(draft: ShipmentDraft): Observable<RateQuote> {
     return this.api.post<RateQuote>(API.portal.compareRates, { pickup: draft.pickup, delivery: draft.delivery, pkg: draft.package });
   }
+
+  /** Rate calculator: prices from pincodes and a package only. Nothing is stored; the options cannot be booked as they are. */
+  estimateRates(body: EstimateRequest): Observable<RateQuote> { return this.api.post<RateQuote>(API.portal.estimateRates, body); }
 
   quote(quoteId: string): Observable<RateQuote> { return this.api.get<RateQuote>(API.portal.quote(quoteId)); }
 
