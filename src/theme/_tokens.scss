@@ -1,33 +1,121 @@
 // =============================================================================
-// Design tokens for the OCCPL SOFTECH customer portal. Same variable names as
-// courier-web (src/theme/_tokens.scss) so components read alike. The palette is the
-// OCCPL platform portal's (frontend/admin-portal/src/styles/_tokens.scss): crimson
-// primary (#d61f45, strong #b3123a), indigo accent (#4338ca), the same neutrals and
-// status colours. The lighter and darker steps of each ramp are derived from those.
+// Design tokens for the OCCPL SOFTECH customer portal — the OCCPL platform's
+// "Sunrise Mesh Glass" system (frontend/admin-portal/src/styles/_tokens.scss in the
+// platform repo): crimson + indigo on light grey, glass surfaces, Outfit type, light
+// and dark. The `--occpl-*` tokens are the platform's own; the legacy names
+// (`--brand-*`, `--surface*`, `--content-*`, status pairs) are aliases onto them so
+// every component follows the theme.
 // =============================================================================
 
 :root {
-  // Primary = platform crimson.
-  --brand-50:#fdeef2; --brand-100:#fbdce4; --brand-200:#f6b9c8; --brand-300:#ef8ba5;
-  --brand-400:#e8456a; --brand-500:#de2d54; --brand-600:#d61f45; --brand-700:#b3123a;
-  --brand-800:#8b1a3a; --brand-900:#6b1230;
-  // Accent = platform indigo.
-  --accent-50:#ecebfb; --accent-500:#5b50d6; --accent-600:#4338ca;
+  color-scheme: light dark;
 
-  --surface:#ffffff; --surface-muted:#edeff3; --surface-border:#e0e3ec;
-  --content-fg:#1e2140; --content-muted:#5d6285;
+  --occpl-color-primary: #d61f45;
+  --occpl-color-primary-strong: #b3123a;
+  --occpl-color-on-primary: #ffffff;
+  --occpl-color-accent: #4338ca;
+  --occpl-color-background: #edeff3;
+  --occpl-color-surface: #ffffff;
+  --occpl-color-surface-glass: rgb(255 255 255 / 72%);
+  --occpl-color-border: #e0e3ec;
+  --occpl-color-text: #1e2140;
+  --occpl-color-text-muted: #5d6285;
+  --occpl-color-link: #b3123a;
+  --occpl-color-danger: #b42318;
+  --occpl-color-danger-surface: #fde7ec;
+  --occpl-color-success: #0b7a55;
+  --occpl-color-warning: #a35f00;
+  --occpl-color-info: #4338ca;
+  --occpl-color-success-surface: #e3f5ee;
+  --occpl-color-warning-surface: #fff3dc;
+  --occpl-color-info-surface: #ecebfb;
+  --occpl-color-neutral-surface: #eef0f5;
+  --occpl-color-sky: #0284c7;
+  --occpl-color-teal: #0e9f8e;
+  --occpl-color-amber: #c77700;
+  --occpl-color-plum: #8b1a3a;
 
-  --success:#0b7a55; --success-bg:#e3f5ee; --warning:#a35f00; --warning-bg:#fff3dc;
-  --danger:#b42318; --danger-bg:#fde7ec; --info:#4338ca; --info-bg:#ecebfb;
-  --neutral:#5d6285; --neutral-bg:#eef0f5;
+  --occpl-gradient-brand: linear-gradient(170deg, #e02550 0%, #b3123a 55%, #7a0e33 100%);
+  --occpl-gradient-button: linear-gradient(135deg, #e02550, #b3123a);
+  --occpl-page-glow:
+    radial-gradient(900px 640px at 0% 0%, rgb(214 31 69 / 20%) 0%, transparent 62%),
+    radial-gradient(760px 560px at 100% 100%, rgb(67 56 202 / 16%) 0%, transparent 60%);
 
-  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px;
-  --sp-8:32px; --sp-10:40px;
+  --occpl-shadow-sm: 0 6px 24px rgb(214 31 69 / 8%);
+  --occpl-shadow-md: 0 10px 40px rgb(67 56 202 / 12%);
+  --occpl-radius-sm: 10px;
+  --occpl-radius-md: 18px;
+  --occpl-header-height: 4rem;
+  --occpl-nav-width: 16rem;
+  --occpl-content-max-width: 82rem;
 
-  --r-field:10px; --r-card:14px; --r-card-lg:18px; --r-pill:999px;
+  // ---- aliases used by the portal's components
+  --brand-50: var(--occpl-color-info-surface);
+  --brand-100: var(--occpl-color-info-surface);
+  --brand-300: #ef8ba5;
+  --brand-500: var(--occpl-color-primary);
+  --brand-600: var(--occpl-color-primary);
+  --brand-700: var(--occpl-color-primary-strong);
+  --brand-800: var(--occpl-color-link);
+  --brand-900: #6b1230;
+  --accent-50: var(--occpl-color-info-surface);
+  --accent-600: var(--occpl-color-accent);
 
-  --shadow-sm:0 1px 2px rgba(30,33,64,.06);
-  --shadow:0 1px 3px rgba(30,33,64,.08), 0 1px 2px rgba(30,33,64,.04);
-  --shadow-hover:0 8px 24px rgba(30,33,64,.10);
-  --header-h:64px;
+  --surface: var(--occpl-color-surface);
+  --surface-muted: var(--occpl-color-neutral-surface);
+  --surface-border: var(--occpl-color-border);
+  --content-fg: var(--occpl-color-text);
+  --content-muted: var(--occpl-color-text-muted);
+
+  --success: var(--occpl-color-success); --success-bg: var(--occpl-color-success-surface);
+  --warning: var(--occpl-color-warning); --warning-bg: var(--occpl-color-warning-surface);
+  --danger: var(--occpl-color-danger); --danger-bg: var(--occpl-color-danger-surface);
+  --info: var(--occpl-color-info); --info-bg: var(--occpl-color-info-surface);
+  --neutral: var(--occpl-color-text-muted); --neutral-bg: var(--occpl-color-neutral-surface);
+
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-8:32px; --sp-10:40px;
+  --r-field: var(--occpl-radius-sm); --r-card: var(--occpl-radius-md); --r-card-lg: 24px; --r-pill: 999px;
+
+  --shadow-sm: var(--occpl-shadow-sm);
+  --shadow: var(--occpl-shadow-sm);
+  --shadow-hover: var(--occpl-shadow-md);
+  --header-h: var(--occpl-header-height);
 }
+
+@mixin dark-tokens {
+  --occpl-color-primary: #e8456a;
+  --occpl-color-primary-strong: #d61f45;
+  --occpl-color-background: #12121f;
+  --occpl-color-surface: #1c1c2e;
+  --occpl-color-surface-glass: rgb(28 28 46 / 78%);
+  --occpl-color-border: #2e2e48;
+  --occpl-color-text: #ececf7;
+  --occpl-color-text-muted: #a3a4c4;
+  --occpl-color-link: #ff7d9a;
+  --occpl-color-danger: #ff8a7a;
+  --occpl-color-danger-surface: #3d1820;
+  --occpl-color-success: #4fd1a1;
+  --occpl-color-warning: #f0b04a;
+  --occpl-color-info: #9d96ff;
+  --occpl-color-success-surface: #153327;
+  --occpl-color-warning-surface: #3a2c12;
+  --occpl-color-info-surface: #25234a;
+  --occpl-color-neutral-surface: #25253b;
+  --occpl-color-accent: #8c86ff;
+  --occpl-color-sky: #5cc2f5;
+  --occpl-color-teal: #43d1c0;
+  --occpl-color-amber: #f0b04a;
+  --occpl-color-plum: #ff8aa8;
+  --occpl-page-glow:
+    radial-gradient(900px 640px at 0% 0%, rgb(214 31 69 / 22%) 0%, transparent 62%),
+    radial-gradient(760px 560px at 100% 100%, rgb(67 56 202 / 26%) 0%, transparent 60%);
+  --occpl-shadow-sm: 0 6px 24px rgb(0 0 0 / 30%);
+  --occpl-shadow-md: 0 10px 40px rgb(0 0 0 / 35%);
+  --brand-300: #8b2a46;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) { @include dark-tokens; }
+}
+:root[data-theme='dark'] { color-scheme: dark; @include dark-tokens; }
+:root[data-theme='light'] { color-scheme: light; }

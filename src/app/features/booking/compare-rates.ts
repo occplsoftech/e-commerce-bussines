@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, input, signal } from '@angular/core';
+import { Icon } from '@shared/components/icon';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -22,10 +23,12 @@ export function sortOptions(options: RateOption[], key: SortKey): RateOption[] {
 }
 
 /** Steps 2-3: the priced courier services for a quote, sortable, with the full breakdown, and selection. */
+import { CourierLogo } from '@shared/components/courier-logo';
+
 @Component({
   selector: 'ecb-compare-rates',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, BookingSteps, TransportModePipe],
+  imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, DatePipe, DecimalPipe, BookingSteps, TransportModePipe],
   template: `
     <section class="page">
       <div class="page__head">
@@ -54,7 +57,7 @@ export function sortOptions(options: RateOption[], key: SortKey): RateOption[] {
 
         @if (q.options.length === 0) {
           <div class="app-card empty">
-            <span class="material-icons">sentiment_dissatisfied</span>
+            <ecb-icon name="sentiment_dissatisfied" />
             <p>No courier could price this shipment. Check the pincodes and package, or try again later.</p>
           </div>
         } @else {
@@ -73,8 +76,11 @@ export function sortOptions(options: RateOption[], key: SortKey): RateOption[] {
               <article class="app-card option" [class.chosen]="selected()?.optionId === o.optionId">
                 <div class="option__main">
                   <div class="option__who">
+                    <ecb-courier-logo [code]="o.providerCode" [name]="o.providerName" />
+                    <div>
                     <div class="option__name">{{ o.providerName }}</div>
                     <div class="text-caption">{{ o.serviceName }}{{ o.transportMode ? ' · ' + (o.transportMode | titlecaseMode) : '' }}</div>
+                    </div>
                   </div>
                   <div class="option__facts">
                     <div><span class="k">Delivery</span><span class="v">{{ eta(o) }}</span></div>
@@ -117,7 +123,7 @@ export function sortOptions(options: RateOption[], key: SortKey): RateOption[] {
         @if (selected(); as s) {
           <div class="next app-card" role="status">
             <div><strong>{{ s.providerName }}</strong> {{ s.serviceName }} · {{ s.totalAmount | currency: s.currency : 'symbol' : '1.2-2' }}</div>
-            <a class="btn btn--primary" [routerLink]="['/book/confirm', q.quoteId, s.optionId]">Continue to confirm <span class="material-icons">arrow_forward</span></a>
+            <a class="btn btn--primary" [routerLink]="['/book/confirm', q.quoteId, s.optionId]">Continue to confirm <ecb-icon name="arrow_forward" /></a>
           </div>
         }
       } @else if (!error()) {
@@ -127,17 +133,19 @@ export function sortOptions(options: RateOption[], key: SortKey): RateOption[] {
   `,
   styles: [`
     .toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; font:600 13px var(--font-sans); }
-    .toolbar select { font:500 14px var(--font-sans); padding:8px 10px; border-radius:var(--r-field); border:1px solid var(--surface-border); background:var(--surface); }
+    .toolbar select { font:500 14px var(--font-sans); min-height:2.25rem; padding:4px 12px; border-radius:var(--r-field); border:1px solid var(--surface-border); background:var(--surface); }
     .options { display:flex; flex-direction:column; gap:12px; }
-    .option { padding:16px 18px; display:flex; flex-direction:column; gap:10px; }
-    .option.chosen { border-color:var(--brand-400); box-shadow:0 0 0 3px var(--brand-100); }
+    .option { padding:18px 20px; transition:box-shadow .15s, border-color .15s, transform .15s; display:flex; flex-direction:column; gap:10px; }
+    .option:hover { box-shadow:var(--shadow-hover); }
+    .option.chosen { border-color:var(--occpl-color-primary); border-left:5px solid var(--occpl-color-primary); box-shadow:var(--shadow-hover); }
     .option__main { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,2fr) auto; gap:16px; align-items:center; }
+    .option__who { display:flex; align-items:center; gap:14px; min-width:0; }
     .option__name { font:700 16px var(--font-sans); }
     .option__facts { display:flex; gap:24px; flex-wrap:wrap; }
     .option__facts .k { display:block; font:600 11px var(--font-sans); text-transform:uppercase; letter-spacing:.04em; color:var(--content-muted); }
     .option__facts .v { font:600 14px var(--font-sans); }
     .option__price { display:flex; align-items:center; gap:14px; justify-content:flex-end; }
-    .total { font:800 20px var(--font-display); }
+    .total { font:800 1.5rem var(--font-display); background:var(--occpl-gradient-button); -webkit-background-clip:text; background-clip:text; color:transparent; }
     .breakdown summary { cursor:pointer; font:600 13px var(--font-sans); color:var(--brand-700); }
     .breakdown table { width:100%; max-width:480px; border-collapse:collapse; margin-top:8px; font:400 13px var(--font-sans); }
     .breakdown td { padding:6px 0; border-bottom:1px solid var(--surface-border); }
@@ -147,7 +155,7 @@ export function sortOptions(options: RateOption[], key: SortKey): RateOption[] {
     .unavailable h2 { margin:0 0 8px; }
     .unavailable ul { margin:0; padding-left:18px; color:var(--content-muted); font:400 13px/1.6 var(--font-sans); }
     .empty { display:flex; flex-direction:column; align-items:center; gap:8px; padding:32px; text-align:center; color:var(--content-muted); }
-    .next { position:sticky; bottom:12px; display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 18px; flex-wrap:wrap; }
+    .next { position:sticky; bottom:12px; border-bottom:3px solid var(--occpl-color-primary); display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 18px; flex-wrap:wrap; }
     @media (max-width: 760px) {
       .option__main { grid-template-columns:minmax(0,1fr); }
       .option__price { justify-content:space-between; }

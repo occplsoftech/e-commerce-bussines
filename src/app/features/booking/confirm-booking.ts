@@ -14,10 +14,12 @@ export function newIdempotencyKey(): string {
 }
 
 /** Step 4: review the shipment and the frozen price, then book once. */
+import { CourierLogo } from '@shared/components/courier-logo';
+
 @Component({
   selector: 'ecb-confirm-booking',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, CurrencyPipe, DecimalPipe, BookingSteps],
+  imports: [CourierLogo, RouterLink, CurrencyPipe, DecimalPipe, BookingSteps],
   template: `
     <section class="page">
       <div class="page__head">
@@ -32,7 +34,7 @@ export function newIdempotencyKey(): string {
         <div class="grid-2">
           <article class="app-card box">
             <h2 class="text-h2">Courier</h2>
-            <p class="big">{{ o.providerName }} <span class="text-caption">{{ o.serviceName }}</span></p>
+            <p class="big"><ecb-courier-logo [code]="o.providerCode" [name]="o.providerName" /> {{ o.providerName }} <span class="text-caption">{{ o.serviceName }}</span></p>
             <table>
               <tbody>
                 @for (l of o.breakdown; track $index) {
@@ -76,7 +78,7 @@ export function newIdempotencyKey(): string {
   styles: [`
     .box { padding:20px; display:flex; flex-direction:column; gap:12px; }
     .box h2 { margin:0; }
-    .big { font:700 18px var(--font-sans); margin:0; }
+    .big { font:700 18px var(--font-sans); margin:0; display:flex; align-items:center; gap:12px; }
     table { width:100%; border-collapse:collapse; font:400 13px var(--font-sans); }
     td { padding:6px 0; border-bottom:1px solid var(--surface-border); }
     .amt { text-align:right; }

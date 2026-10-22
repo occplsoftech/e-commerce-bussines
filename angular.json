@@ -30,9 +30,15 @@
                 "glob": "*",
                 "input": "src/assets/icons",
                 "output": "/"
+              },
+              {
+                "glob": "*.{svg,png,webp}",
+                "input": "src/assets/couriers",
+                "output": "/couriers"
               }
             ],
             "styles": [
+              "node_modules/@fontsource-variable/outfit/index.css",
               "src/styles.scss"
             ],
             "stylePreprocessorOptions": {

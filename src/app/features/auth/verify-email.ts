@@ -25,7 +25,7 @@ import { AuthService } from '@core/auth/auth.service';
     </div>
   `,
   styles: [`
-    .card { width:420px; max-width:100%; padding:32px; display:flex; flex-direction:column; gap:16px; }
+    .card { width:420px; max-width:100%; padding:32px; border-top:5px solid var(--occpl-color-primary); border-radius:24px; box-shadow:var(--occpl-shadow-md); display:flex; flex-direction:column; gap:16px; }
     .link { font:600 13px var(--font-sans); text-decoration:none; }
   `]
 })

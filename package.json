@@ -1,7 +1,7 @@
 {
   "name": "e-commerce-business",
   "version": "0.1.0",
-  "description": "OCCPL SOFTECH customer shipping portal (Angular 20) \u2014 business customers compare courier rates, book and track shipments",
+  "description": "OCCPL SOFTECH customer shipping portal (Angular 20) — business customers compare courier rates, book and track shipments",
   "scripts": {
     "start": "ng serve --port 4300 --proxy-config proxy.conf.json",
     "build": "ng build",
@@ -19,6 +19,7 @@
     "@angular/material": "^20.0.0",
     "@angular/platform-browser": "^20.0.0",
     "@angular/router": "^20.0.0",
+    "@fontsource-variable/outfit": "^5.3.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.6.0",
     "zone.js": "~0.15.0"
