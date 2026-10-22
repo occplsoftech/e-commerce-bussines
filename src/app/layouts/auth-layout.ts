@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ThemeService } from '@core/services/theme.service';
 import { Icon } from '@shared/components/icon';
 import { RuntimeConfigService } from '@core/config/runtime-config.service';
 
@@ -22,7 +23,13 @@ import { RuntimeConfigService } from '@core/config/runtime-config.service';
           <li><ecb-icon name="local_shipping" /> Tracking and labels in your account</li>
         </ul>
       </aside>
-      <main class="auth__main"><router-outlet /></main>
+      <main class="auth__main">
+        <button class="theme" type="button" (click)="theme.toggle()"
+                [attr.aria-label]="theme.mode() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
+          <ecb-icon [name]="theme.mode() === 'dark' ? 'light_mode' : 'dark_mode'" />
+        </button>
+        <router-outlet />
+      </main>
     </div>
   `,
   styles: [`
@@ -37,11 +44,15 @@ import { RuntimeConfigService } from '@core/config/runtime-config.service';
     ul { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:14px; font:500 1rem var(--font-sans); }
     li { display:flex; align-items:center; gap:12px; }
     li ecb-icon { padding:8px; box-sizing:content-box; border-radius:12px; background:rgb(255 255 255 / 16%); }
-    .auth__main { display:grid; place-items:center; padding:32px 16px; }
+    .auth__main { position:relative; display:grid; place-items:center; padding:32px 16px; }
+    .theme { position:absolute; top:8px; right:8px; display:grid; place-items:center; width:2.5rem; height:2.5rem; border-radius:12px;
+      border:1px solid var(--surface-border); background:var(--occpl-color-surface-glass); color:var(--content-fg); cursor:pointer; font-size:1.1rem; }
+    .theme:hover { background:var(--occpl-color-info-surface); }
     @media (max-width: 56rem) { .auth { grid-template-columns: minmax(0,1fr); } .auth__brand { display:none; } }
   `]
 })
 export class AuthLayout {
   protected readonly config = inject(RuntimeConfigService).config;
+  protected readonly theme = inject(ThemeService);
   protected readonly initials = computed(() => this.config().companyName.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]!.toUpperCase()).join('') || 'OC');
 }

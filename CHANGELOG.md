@@ -11,6 +11,7 @@
   cards with hover and a crimson edge on the chosen one, gradient price, platform-style sticky action bar.
 - Courier partner logo on rate options, the confirm screen, booking result, history and detail (`ecb-courier-logo`: official
   logo file from `src/assets/couriers` when one is registered, otherwise a brand-coloured monogram badge).
+- Light/dark toggle on the sign-in screens as well as in the signed-in header.
 - Icons are inline SVG (`ecb-icon`); the Material Icons font and Google Fonts are gone, so the CSP no longer allows any
   external style or font host. Outfit is bundled.
 
