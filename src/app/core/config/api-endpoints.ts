@@ -22,6 +22,11 @@ export const API = {
     bookingLabel: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/label`,
     shipmentTracking: (id: string) => `/customer-portal/shipments/${encodeURIComponent(id)}/tracking`,
     courierLogos: '/customer-portal/courier-logos',
+    customers: '/customer-portal/customers',
+    customer: (id: string) => `/customer-portal/customers/${encodeURIComponent(id)}`,
+    customerAddresses: (id: string) => `/customer-portal/customers/${encodeURIComponent(id)}/addresses`,
+    customerAddress: (id: string, addressId: string) =>
+      `/customer-portal/customers/${encodeURIComponent(id)}/addresses/${encodeURIComponent(addressId)}`,
     addresses: '/customer-portal/addresses',
     address: (id: string) => `/customer-portal/addresses/${encodeURIComponent(id)}`
   }

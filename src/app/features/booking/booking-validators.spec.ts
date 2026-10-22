@@ -1,5 +1,5 @@
-import { FormControl } from '@angular/forms';
-import { mobileValidator, normaliseMobile, pincodeValidator, positiveNumber, wholeNumber } from './booking-validators';
+import { FormControl, FormGroup } from '@angular/forms';
+import { differentAddresses, mobileValidator, normaliseMobile, pincodeValidator, positiveNumber, wholeNumber } from './booking-validators';
 
 describe('booking validators', () => {
   it('accepts Indian pincodes and rejects malformed ones', () => {
@@ -31,5 +31,22 @@ describe('booking validators', () => {
     expect(count(new FormControl(0))).not.toBeNull();
     expect(count(new FormControl(1.5))).not.toBeNull();
     expect(count(new FormControl(1000))).not.toBeNull();
+  });
+
+  describe('differentAddresses', () => {
+    const form = (pa: string, pp: string, da: string, dp: string) => new FormGroup({
+      pickup: new FormGroup({ address: new FormControl(pa), pincode: new FormControl(pp) }),
+      delivery: new FormGroup({ address: new FormControl(da), pincode: new FormControl(dp) })
+    }, { validators: differentAddresses });
+
+    it('refuses the same pincode and the same address text, ignoring case, spacing and punctuation', () => {
+      expect(form('Office 4, Thorat Chowk', '411016', '  office 4 thorat  chowk. ', '411016').errors).toEqual({ sameAddress: true });
+    });
+
+    it('allows a different address, a different pincode, or an address not yet typed', () => {
+      expect(form('Office 4, Thorat Chowk', '411016', 'Office 5, Thorat Chowk', '411016').errors).toBeNull();
+      expect(form('Office 4, Thorat Chowk', '411016', 'Office 4, Thorat Chowk', '560001').errors).toBeNull();
+      expect(form('Office 4, Thorat Chowk', '411016', '', '411016').errors).toBeNull();
+    });
   });
 });

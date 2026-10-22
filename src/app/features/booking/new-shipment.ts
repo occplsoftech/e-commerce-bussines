@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PortalService } from '@core/services/portal.service';
 import { PortalAddress } from '@core/models/portal.model';
-import { mobileValidator, normaliseMobile, pincodeValidator, positiveNumber, wholeNumber } from './booking-validators';
+import { differentAddresses, mobileValidator, normaliseMobile, pincodeValidator, positiveNumber, wholeNumber } from './booking-validators';
 
 /**
  * Step 1 of booking: pickup, delivery and package. "Compare rates" validates, keeps the draft and asks the
@@ -93,6 +93,7 @@ import { mobileValidator, normaliseMobile, pincodeValidator, positiveNumber, who
           </div>
         </fieldset>
 
+        @if (sameAddress()) { <p class="alert alert--error" role="alert">Pickup and delivery address cannot be the same. Enter the address the parcel is going to.</p> }
         @if (notice()) { <p class="alert alert--info" role="status">{{ notice() }}</p> }
 
         <div class="actions">
@@ -140,7 +141,7 @@ export class NewShipment implements OnInit {
       declaredValue: this.fb.control<number | null>(null, [Validators.required, positiveNumber(10_000_000, 2)]),
       paymentMode: this.fb.nonNullable.control<'PREPAID' | 'COD'>('PREPAID')
     })
-  });
+  }, { validators: differentAddresses });
 
   constructor() {
     const draft = this.drafts.draft();
@@ -173,6 +174,11 @@ export class NewShipment implements OnInit {
     return c.invalid && (c.touched || c.dirty);
   }
 
+  /** True once both addresses are filled in and identical (shown at once, not only after a failed submit). */
+  sameAddress(): boolean {
+    return !!this.form.errors?.['sameAddress'];
+  }
+
   dimsBad(): boolean {
     return ['length', 'breadth', 'height'].some((f) => this.bad('package.' + f));
   }
@@ -181,7 +187,7 @@ export class NewShipment implements OnInit {
     this.notice.set(null);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.notice.set('Please correct the highlighted fields.');
+      this.notice.set(this.sameAddress() ? null : 'Please correct the highlighted fields.');
       return;
     }
     const v = this.form.getRawValue();
