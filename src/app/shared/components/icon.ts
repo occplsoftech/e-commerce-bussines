@@ -33,6 +33,12 @@ const PATHS: Record<string, string> = {
   check_circle: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8 12.5l3 3 5-6',
   schedule: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2',
   group: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 13 0M16 4.3a3.5 3.5 0 0 1 0 6.4M18 14.5a6.5 6.5 0 0 1 3.5 5.5',
+  verified_user: 'M12 3l7 3v6c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9V6zM8.5 12l2.5 2.5 4.5-5',
+  upload: 'M12 16V4M7 9l5-5 5 5M5 20h14',
+  download: 'M12 4v12M7 11l5 5 5-5M5 20h14',
+  description: 'M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6',
+  mail: 'M4 6h16v12H4zM4 7l8 6 8-6',
+  smartphone: 'M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM11 18h2',
   chevron_left: 'M15 6l-6 6 6 6',
   chevron_right: 'M9 6l6 6-6 6'
 };

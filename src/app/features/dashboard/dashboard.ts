@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { Icon } from '@shared/components/icon';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { KycService } from '@features/kyc/kyc.service';
 import { CustomerNameStore } from '@core/services/customer-name.store';
 import { PortalService } from '@core/services/portal.service';
 import { PortalDashboard } from '@core/models/portal.model';
@@ -29,6 +30,17 @@ import { STATUS_VIEW } from '@shared/utils/shipment-status';
           <a class="btn btn--primary" routerLink="/book"><ecb-icon name="add" /> Book a shipment</a>
         </div>
       </div>
+
+      @if (kyc.current(); as k) {
+        @if (k.status !== 'COMPLETE') {
+          <a class="kyc-nudge" routerLink="/kyc">
+            <ecb-icon name="verified_user" />
+            <span><strong>Complete your KYC</strong> — {{ k.requiredUploaded + (k.emailVerified ? 1 : 0) + (k.mobileVerified ? 1 : 0) }} of
+              {{ k.requiredTotal + 2 }} steps done. Verify your e-mail and mobile and upload your business documents.</span>
+            <span class="kyc-nudge__go">Continue →</span>
+          </a>
+        }
+      }
 
       @if (error()) {
         <p class="alert alert--error" role="alert">{{ error() }} <button class="btn btn--ghost" type="button" (click)="load()">Retry</button></p>
@@ -92,6 +104,11 @@ import { STATUS_VIEW } from '@shared/utils/shipment-status';
     </section>
   `,
   styles: [`
+    .kyc-nudge { display:flex; align-items:center; gap:14px; padding:14px 18px; border-radius:18px; text-decoration:none; color:var(--content-fg);
+      background:var(--warning-bg); border:1px solid color-mix(in srgb, var(--warning) 40%, transparent); font-size:.95rem; }
+    .kyc-nudge ecb-icon { font-size:1.5rem; color:var(--warning); flex:none; }
+    .kyc-nudge span { flex:1; }
+    .kyc-nudge__go { flex:none !important; font-weight:800; color:var(--occpl-color-link); }
     .kpis { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:16px; }
     .kpi { --c:var(--occpl-color-accent); position:relative; display:flex; align-items:center; gap:14px; padding:18px; border-radius:22px; overflow:hidden;
       background:color-mix(in srgb, var(--c) 12%, var(--occpl-color-surface)); border:1px solid color-mix(in srgb, var(--c) 30%, var(--surface-border)); }
@@ -126,6 +143,7 @@ import { STATUS_VIEW } from '@shared/utils/shipment-status';
 export class Dashboard implements OnInit {
   protected readonly customer = inject(CustomerNameStore);
   private readonly portal = inject(PortalService);
+  protected readonly kyc = inject(KycService);
   readonly data = signal<PortalDashboard | null>(null);
   readonly error = signal<string | null>(null);
 
@@ -146,7 +164,10 @@ export class Dashboard implements OnInit {
   readonly slices = computed<ChartSlice[]>(() => this.kpis().slice(1).map((k) => ({ label: k.label, value: k.value, color: k.color })));
   readonly total = computed(() => this.slices().reduce((n, s) => n + s.value, 0));
 
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void {
+    this.load();
+    this.kyc.view().subscribe({ error: () => undefined });
+  }
 
   load(): void {
     this.error.set(null);
