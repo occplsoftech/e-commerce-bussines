@@ -4,6 +4,7 @@
 
 - Rate calculator redesigned: the route and package sit in a bar across the top, the rates appear below as a grid of courier cards (three per
   row) with mode filters and a sort (lowest price, fastest, courier name). Stacks to two and one column on smaller screens.
+- (An earlier two-column layout of the calculator was replaced by the one above.)
 
 ## 0.8.0 — 2026-10-22
 
