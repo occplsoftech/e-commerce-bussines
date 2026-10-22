@@ -20,6 +20,7 @@ export const routes: Routes = [
     loadComponent: () => import('@layouts/portal-layout').then((m) => m.PortalLayout),
     children: [
       { path: 'dashboard', loadComponent: () => import('@features/dashboard/dashboard').then((m) => m.Dashboard), title: 'Dashboard · OCCPL SOFTECH' },
+      { path: 'rates', loadComponent: () => import('@features/calculator/rate-calculator').then((m) => m.RateCalculator), title: 'Rate calculator · OCCPL SOFTECH' },
       { path: 'book', loadComponent: () => import('@features/booking/new-shipment').then((m) => m.NewShipment), title: 'Book a shipment · OCCPL SOFTECH' },
       { path: 'book/confirm/:quoteId/:optionId', loadComponent: () => import('@features/booking/confirm-booking').then((m) => m.ConfirmBooking), title: 'Confirm booking · OCCPL SOFTECH' },
       { path: 'book/result/:bookingId', loadComponent: () => import('@features/booking/booking-result').then((m) => m.BookingResult), title: 'Booking result · OCCPL SOFTECH' },

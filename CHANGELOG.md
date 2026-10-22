@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0 — 2026-10-22
+
+- Rate calculator (menu "Rate calculator"): pickup and delivery pincode (city shown as soon as six digits are typed), boxes, total
+  weight and value, optional dimensions and cash on delivery, then every connected courier's price in one list with the lowest
+  marked, courier logo, delivery days, per-kg rate and a price breakup. "Book" carries the pincodes and package into the booking form.
+  Needs the courier-service endpoint `POST /customer-portal/rates/estimate`.
+
 ## 0.7.0 — 2026-10-22
 
 - Redesigned to match the OCCPL platform portal ("Sunrise Mesh Glass"): the platform's `--occpl-*` tokens (colour, glass
