@@ -124,6 +124,7 @@ export class PortalLayout {
     { path: '/dashboard', label: 'Dashboard', icon: 'space_dashboard' },
     { path: '/book', label: 'Book shipment', icon: 'add_box' },
     { path: '/shipments', label: 'Shipments', icon: 'local_shipping' },
+    { path: '/customers', label: 'My customers', icon: 'group' },
     { path: '/profile', label: 'Profile', icon: 'storefront' }
   ];
 

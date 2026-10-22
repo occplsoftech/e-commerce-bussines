@@ -7,6 +7,9 @@
   system until chosen), the platform shell (floating crimson sidebar with white active pill, collapsible to an icon rail,
   drawer on phones; glass header with crimson underline, avatar and sign-out), gradient primary buttons, taller rounded
   inputs with the indigo focus ring, neutral table headers and tinted row hover, and the crimson-topped sign-in card.
+- "My customers": a customer can register customers of its own (linked to it as parent by the server); each has its own list of
+  addresses, as many as needed (reuses the address book). Pickup and delivery address can no longer be the same place (checked in the
+  form and by the server).
 - The customer's own brand logo (uploaded in courier-web) replaces the initials badge in the header; their website shows under the greeting (http/https links only).
 - The greeting and header use the customer's contact person (else company name) from the profile; an e-mail address is never shown as the name.
 - Booking steps are now four: Shipment details, Compare & select (rates and the choice on one page), Confirm booking, Booking result.

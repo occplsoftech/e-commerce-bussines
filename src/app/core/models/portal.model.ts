@@ -240,3 +240,28 @@ export interface ShipmentTracking {
   shipment: PortalShipment;
   steps: { status: ShipmentStatus; at: string; location: string | null }[];
 }
+
+/** A customer this customer registered (the server records the registering customer as its parent). */
+export interface SubCustomer {
+  id: string;
+  customerCode: string;
+  displayName: string;
+  firstName: string;
+  lastName: string | null;
+  companyName: string | null;
+  mobile: string;
+  email: string | null;
+  contactPerson: string | null;
+  status: string;
+  version: number;
+}
+
+export interface SubCustomerRequest {
+  firstName: string;
+  lastName: string | null;
+  companyName: string | null;
+  mobile: string;
+  email: string | null;
+  contactPerson: string | null;
+  expectedVersion: number | null;
+}

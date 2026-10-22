@@ -36,4 +36,21 @@ export function wholeNumber(min: number, max: number): ValidatorFn {
   };
 }
 
-/** Pickup and delivery pincodes may be equal (same-city shipment), so no cross-field rule here. */
+/** Letters and digits only, lower case: so "Office 4, Thorat Chowk." and "office 4 thorat  chowk" compare equal. */
+function squash(value: unknown): string {
+  return String(value ?? '').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+}
+
+/**
+ * Pickup and delivery must be two different places. The same pincode is fine (same-city shipment); the same pincode with
+ * the same address text is not. The server enforces this too.
+ */
+export const differentAddresses: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
+  const pickup = group.get('pickup');
+  const delivery = group.get('delivery');
+  if (!pickup || !delivery) return null;
+  const a = squash(pickup.get('address')?.value);
+  const b = squash(delivery.get('address')?.value);
+  if (!a || !b) return null;
+  return a === b && squash(pickup.get('pincode')?.value) === squash(delivery.get('pincode')?.value) ? { sameAddress: true } : null;
+};

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, input, output, signal } from '@angular/core';
 import { Icon } from '@shared/components/icon';
 import { TitleCasePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -17,10 +17,10 @@ import { errorMessage } from '@shared/utils/http-error';
   template: `
     <article class="app-card box">
       <div class="row">
-        <h2 class="text-h2">Saved addresses</h2>
+        <h2 class="text-h2">{{ heading() }}</h2>
         @if (!editing()) { <button class="btn btn--ghost" type="button" (click)="startAdd()"><ecb-icon name="add" /> Add address</button> }
       </div>
-      <p class="text-caption">Saved addresses can be picked when you book a shipment.</p>
+      <p class="text-caption">Saved addresses can be picked when you book a shipment. Add as many as you need.</p>
 
       @if (editing()) {
         <form class="editor" [formGroup]="form" (ngSubmit)="save()" novalidate>
@@ -122,6 +122,10 @@ export class AddressBook implements OnInit {
   private readonly fb = inject(FormBuilder);
   /** Emits the current list after every change, so the parent can refresh what it shows. */
   readonly changed = output<PortalAddress[]>();
+  /** Set to manage the addresses of one of the customers this customer registered; unset = the customer's own. */
+  readonly customerId = input<string | undefined>(undefined);
+  /** Heading, since the same list serves both. */
+  readonly heading = input('Saved addresses');
 
   readonly addresses = signal<PortalAddress[] | null>(null);
   readonly editing = signal(false);
@@ -144,7 +148,7 @@ export class AddressBook implements OnInit {
   ngOnInit(): void { this.load(); }
 
   load(): void {
-    this.portal.addresses().subscribe({
+    this.portal.addresses(this.customerId()).subscribe({
       next: (list) => { this.addresses.set(list); this.changed.emit(list); },
       error: () => this.addresses.set([])
     });
@@ -190,7 +194,7 @@ export class AddressBook implements OnInit {
     const id = this.editingId();
     this.saving.set(true);
     this.formError.set(null);
-    (id ? this.portal.updateAddress(id, body) : this.portal.addAddress(body)).subscribe({
+    (id ? this.portal.updateAddress(id, body, this.customerId()) : this.portal.addAddress(body, this.customerId())).subscribe({
       next: () => {
         this.saving.set(false);
         this.editing.set(false);
@@ -206,7 +210,7 @@ export class AddressBook implements OnInit {
 
   remove(a: PortalAddress): void {
     if (!confirm('Remove this address from your address book?')) return;
-    this.portal.removeAddress(a.id).subscribe({
+    this.portal.removeAddress(a.id, this.customerId()).subscribe({
       next: () => { this.notify.success('Address removed.'); this.load(); },
       error: () => this.notify.error('The address could not be removed. Please try again.')
     });
