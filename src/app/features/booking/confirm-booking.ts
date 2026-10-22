@@ -26,7 +26,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
         <div><h1 class="text-display">Confirm booking</h1><p class="text-caption">Check the details, then book. You will not be charged twice if you click again.</p></div>
         <div class="page__actions"><a class="btn btn--ghost" [routerLink]="['/book/rates', quoteId()]">Back to rates</a></div>
       </div>
-      <ecb-booking-steps [current]="3" />
+      <ecb-booking-steps [current]="2" />
 
       @if (error()) { <p class="alert alert--error" role="alert">{{ error() }}</p> }
 

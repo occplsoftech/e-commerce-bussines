@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-export const BOOKING_STEPS = ['Shipment details', 'Compare rates', 'Select courier', 'Confirm booking', 'Booking result'] as const;
+export const BOOKING_STEPS = ['Shipment details', 'Compare & select', 'Confirm booking', 'Booking result'] as const;
 
 /** The five-step booking progress bar. On phones only the current step's label is shown. */
 @Component({
