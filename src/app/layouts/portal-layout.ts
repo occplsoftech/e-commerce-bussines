@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
 import { RuntimeConfigService } from '@core/config/runtime-config.service';
+import { CourierLogoStore } from '@core/services/courier-logo.store';
+import { CustomerNameStore } from '@core/services/customer-name.store';
 import { ThemeService } from '@core/services/theme.service';
 import { Icon } from '@shared/components/icon';
 
@@ -44,7 +46,7 @@ interface NavItem { path: string; label: string; icon: string; }
                   [attr.aria-label]="theme.mode() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
             <ecb-icon [name]="theme.mode() === 'dark' ? 'light_mode' : 'dark_mode'" />
           </button>
-          <span class="who"><span class="avatar">{{ userInitials() }}</span><span class="who__name">{{ auth.displayName() }}</span></span>
+          <span class="who"><span class="avatar">{{ userInitials() }}</span><span class="who__name">{{ customer.name() }}</span></span>
           <button class="btn btn--ghost signout" type="button" (click)="signOut()"><ecb-icon name="logout" /><span>Sign out</span></button>
         </header>
         <main class="content"><router-outlet /></main>
@@ -107,16 +109,23 @@ export class PortalLayout {
   protected readonly theme = inject(ThemeService);
   protected readonly config = inject(RuntimeConfigService).config;
   private readonly router = inject(Router);
+  private readonly logos = inject(CourierLogoStore);
+  protected readonly customer = inject(CustomerNameStore);
   protected readonly collapsed = signal(false);
   protected readonly drawer = signal(false);
   protected readonly initials = computed(() => initialsOf(this.config().companyName, 2) || 'OC');
-  protected readonly userInitials = computed(() => initialsOf(this.auth.displayName() ?? '', 2) || '·');
+  protected readonly userInitials = computed(() => initialsOf(this.customer.name(), 2) || '·');
   protected readonly nav: NavItem[] = [
     { path: '/dashboard', label: 'Dashboard', icon: 'space_dashboard' },
     { path: '/book', label: 'Book shipment', icon: 'add_box' },
     { path: '/shipments', label: 'Shipments', icon: 'local_shipping' },
     { path: '/profile', label: 'Profile', icon: 'storefront' }
   ];
+
+  constructor() {
+    this.logos.load();
+    this.customer.load();
+  }
 
   /** One button: on a phone it opens the drawer, on a desktop it collapses the sidebar to an icon rail. */
   protected toggleNav(): void {

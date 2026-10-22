@@ -17,7 +17,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
   template: `
     <section class="page">
       <div class="page__head"><div><h1 class="text-display">Booking result</h1></div></div>
-      <ecb-booking-steps [current]="4" />
+      <ecb-booking-steps [current]="3" />
       @if (error()) { <p class="alert alert--error" role="alert">{{ error() }}</p> }
       @if (booking(); as b) {
         <article class="app-card box" [attr.aria-live]="'polite'">

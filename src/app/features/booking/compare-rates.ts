@@ -33,7 +33,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
     <section class="page">
       <div class="page__head">
         <div>
-          <h1 class="text-display">Compare rates</h1>
+          <h1 class="text-display">Compare &amp; select a courier</h1>
           @if (quote(); as q) {
             <p class="text-caption">{{ q.pickupPincode }} → {{ q.deliveryPincode }} · {{ q.packageCount }} package(s) ·
               {{ q.actualWeightKg | number: '1.0-3' }} kg actual, {{ q.volumetricWeightKg | number: '1.0-3' }} kg volumetric (L×B×H/5000)
@@ -43,7 +43,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
         <div class="page__actions"><a class="btn btn--ghost" routerLink="/book">Edit shipment</a></div>
       </div>
 
-      <ecb-booking-steps [current]="selected() ? 2 : 1" />
+      <ecb-booking-steps [current]="1" />
 
       @if (error()) { <p class="alert alert--error" role="alert">{{ error() }}</p> }
 
