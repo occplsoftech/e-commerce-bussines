@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.1 — 2026-10-22
+
+- Rate calculator redesigned: the route and package sit in a bar across the top, the rates appear below as a grid of courier cards (three per
+  row) with mode filters and a sort (lowest price, fastest, courier name). Stacks to two and one column on smaller screens.
+
 ## 0.8.0 — 2026-10-22
 
 - Rate calculator (menu "Rate calculator"): pickup and delivery pincode (city shown as soon as six digits are typed), boxes, total
