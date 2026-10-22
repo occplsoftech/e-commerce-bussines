@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.0 — 2026-10-22
+
+- Redesigned to match the OCCPL platform portal ("Sunrise Mesh Glass"): the platform's `--occpl-*` tokens (colour, glass
+  surfaces, gradients, radii, shadows, page glow), Outfit typeface, light and dark themes (toggle in the header, follows the
+  system until chosen), the platform shell (floating crimson sidebar with white active pill, collapsible to an icon rail,
+  drawer on phones; glass header with crimson underline, avatar and sign-out), gradient primary buttons, taller rounded
+  inputs with the indigo focus ring, neutral table headers and tinted row hover, and the crimson-topped sign-in card.
+- Icons are inline SVG (`ecb-icon`); the Material Icons font and Google Fonts are gone, so the CSP no longer allows any
+  external style or font host. Outfit is bundled.
+
 ## 0.6.0 — 2026-10-21
 
 - Branding now matches the OCCPL platform portal: crimson primary (#d61f45 / #b3123a) with the indigo accent (#4338ca),

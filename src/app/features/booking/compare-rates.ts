@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, input, signal } from '@angular/core';
+import { Icon } from '@shared/components/icon';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -25,7 +26,7 @@ export function sortOptions(options: RateOption[], key: SortKey): RateOption[] {
 @Component({
   selector: 'ecb-compare-rates',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, BookingSteps, TransportModePipe],
+  imports: [Icon, RouterLink, CurrencyPipe, DatePipe, DecimalPipe, BookingSteps, TransportModePipe],
   template: `
     <section class="page">
       <div class="page__head">
@@ -54,7 +55,7 @@ export function sortOptions(options: RateOption[], key: SortKey): RateOption[] {
 
         @if (q.options.length === 0) {
           <div class="app-card empty">
-            <span class="material-icons">sentiment_dissatisfied</span>
+            <ecb-icon name="sentiment_dissatisfied" />
             <p>No courier could price this shipment. Check the pincodes and package, or try again later.</p>
           </div>
         } @else {
@@ -117,7 +118,7 @@ export function sortOptions(options: RateOption[], key: SortKey): RateOption[] {
         @if (selected(); as s) {
           <div class="next app-card" role="status">
             <div><strong>{{ s.providerName }}</strong> {{ s.serviceName }} · {{ s.totalAmount | currency: s.currency : 'symbol' : '1.2-2' }}</div>
-            <a class="btn btn--primary" [routerLink]="['/book/confirm', q.quoteId, s.optionId]">Continue to confirm <span class="material-icons">arrow_forward</span></a>
+            <a class="btn btn--primary" [routerLink]="['/book/confirm', q.quoteId, s.optionId]">Continue to confirm <ecb-icon name="arrow_forward" /></a>
           </div>
         }
       } @else if (!error()) {

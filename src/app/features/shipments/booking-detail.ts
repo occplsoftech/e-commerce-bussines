@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal } from '@angular/core';
+import { Icon } from '@shared/components/icon';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -13,19 +14,19 @@ import { TrackingTimeline } from './tracking-timeline';
 @Component({
   selector: 'ecb-booking-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, CurrencyPipe, DatePipe, DecimalPipe, TransportModePipe, TrackingTimeline],
+  imports: [Icon, RouterLink, CurrencyPipe, DatePipe, DecimalPipe, TransportModePipe, TrackingTimeline],
   template: `
     <section class="page">
       <div class="page__head">
         <div>
-          <a class="back" routerLink="/shipments"><span class="material-icons">arrow_back</span> Shipments</a>
+          <a class="back" routerLink="/shipments"><ecb-icon name="arrow_back" /> Shipments</a>
           <h1 class="text-display">Shipment</h1>
         </div>
         @if (booking(); as b) {
           <div class="page__actions">
             @if (b.labelDownloadable) {
               <button class="btn btn--primary" type="button" (click)="downloadLabel(b)" [disabled]="downloading()">
-                <span class="material-icons">print</span> {{ downloading() ? 'Preparing…' : 'Download label' }}
+                <ecb-icon name="print" /> {{ downloading() ? 'Preparing…' : 'Download label' }}
               </button>
             }
           </div>
@@ -63,7 +64,7 @@ import { TrackingTimeline } from './tracking-timeline';
                 <h2 class="text-h2">Tracking</h2>
                 @if (b.status === 'BOOKED') {
                   <button class="btn btn--ghost" type="button" (click)="refreshTracking()" [disabled]="tracking() === undefined">
-                    <span class="material-icons">refresh</span> Refresh
+                    <ecb-icon name="refresh" /> Refresh
                   </button>
                 }
               </div>
@@ -126,7 +127,7 @@ import { TrackingTimeline } from './tracking-timeline';
   `,
   styles: [`
     .back { display:inline-flex; align-items:center; gap:4px; font:600 13px var(--font-sans); color:var(--content-muted); text-decoration:none; }
-    .back .material-icons { font-size:18px; }
+    .back ecb-icon { font-size:18px; }
     .layout { display:grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap:16px; align-items:start; }
     .col { display:flex; flex-direction:column; gap:16px; min-width:0; }
     .box { padding:20px; display:flex; flex-direction:column; gap:12px; }

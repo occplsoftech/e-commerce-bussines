@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { Icon } from '@shared/components/icon';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PortalService } from '@core/services/portal.service';
@@ -10,12 +11,12 @@ import { TrackingTimeline, TimelineItem } from './tracking-timeline';
 @Component({
   selector: 'ecb-shipment-tracking',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, DatePipe, TrackingTimeline],
+  imports: [Icon, RouterLink, DatePipe, TrackingTimeline],
   template: `
     <section class="page">
       <div class="page__head">
         <div>
-          <a class="back" routerLink="/dashboard"><span class="material-icons">arrow_back</span> Dashboard</a>
+          <a class="back" routerLink="/dashboard"><ecb-icon name="arrow_back" /> Dashboard</a>
           <h1 class="text-display">Track shipment</h1>
         </div>
       </div>
@@ -41,7 +42,7 @@ import { TrackingTimeline, TimelineItem } from './tracking-timeline';
   `,
   styles: [`
     .back { display:inline-flex; align-items:center; gap:4px; font:600 13px var(--font-sans); color:var(--content-muted); text-decoration:none; }
-    .back .material-icons { font-size:18px; }
+    .back ecb-icon { font-size:18px; }
     .box { padding:20px; display:flex; flex-direction:column; gap:16px; max-width:760px; }
     .row { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
     h2 { margin:0; }

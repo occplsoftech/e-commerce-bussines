@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, output, signal } from '@angular/core';
+import { Icon } from '@shared/components/icon';
 import { TitleCasePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -12,12 +13,12 @@ import { errorMessage } from '@shared/utils/http-error';
 @Component({
   selector: 'ecb-address-book',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, TitleCasePipe],
+  imports: [Icon, ReactiveFormsModule, TitleCasePipe],
   template: `
     <article class="app-card box">
       <div class="row">
         <h2 class="text-h2">Saved addresses</h2>
-        @if (!editing()) { <button class="btn btn--ghost" type="button" (click)="startAdd()"><span class="material-icons">add</span> Add address</button> }
+        @if (!editing()) { <button class="btn btn--ghost" type="button" (click)="startAdd()"><ecb-icon name="add" /> Add address</button> }
       </div>
       <p class="text-caption">Saved addresses can be picked when you book a shipment.</p>
 

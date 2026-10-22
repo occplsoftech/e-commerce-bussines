@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { Icon } from '@shared/components/icon';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BookingDraftService, ShipmentDraft } from './booking-draft.service';
 import { PartyFields } from './party-fields';
@@ -16,7 +17,7 @@ import { mobileValidator, normaliseMobile, pincodeValidator, positiveNumber, who
 @Component({
   selector: 'ecb-new-shipment',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, PartyFields, BookingSteps],
+  imports: [Icon, ReactiveFormsModule, PartyFields, BookingSteps],
   template: `
     <section class="page">
       <div class="page__head">
@@ -97,7 +98,7 @@ import { mobileValidator, normaliseMobile, pincodeValidator, positiveNumber, who
         <div class="actions">
           <button class="btn btn--ghost" type="button" (click)="reset()">Clear</button>
           <button class="btn btn--primary" type="submit" [disabled]="comparing()">
-            {{ comparing() ? 'Asking couriers…' : 'Compare rates' }} <span class="material-icons">arrow_forward</span>
+            {{ comparing() ? 'Asking couriers…' : 'Compare rates' }} <ecb-icon name="arrow_forward" />
           </button>
         </div>
       </form>

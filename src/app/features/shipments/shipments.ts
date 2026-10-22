@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { Icon } from '@shared/components/icon';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -17,7 +18,7 @@ const FILTERS: { value: BookingStatus | ''; label: string }[] = [
 @Component({
   selector: 'ecb-shipments',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, FormsModule, DatePipe, CurrencyPipe],
+  imports: [Icon, RouterLink, FormsModule, DatePipe, CurrencyPipe],
   template: `
     <section class="page">
       <div class="page__head">
@@ -26,7 +27,7 @@ const FILTERS: { value: BookingStatus | ''; label: string }[] = [
           <p class="text-caption">Bookings you made here. Open one to track it or download its label.</p>
         </div>
         <div class="page__actions">
-          <a class="btn btn--primary" routerLink="/book"><span class="material-icons">add</span> Book a shipment</a>
+          <a class="btn btn--primary" routerLink="/book"><ecb-icon name="add" /> Book a shipment</a>
         </div>
       </div>
 
@@ -46,7 +47,7 @@ const FILTERS: { value: BookingStatus | ''; label: string }[] = [
           <p class="text-caption pad">{{ error() ? 'Not available.' : 'Loading…' }}</p>
         } @else if (page()!.content.length === 0) {
           <div class="empty">
-            <span class="material-icons">local_shipping</span>
+            <ecb-icon name="local_shipping" />
             <p>{{ status() ? 'No bookings with this status.' : 'No bookings yet.' }}</p>
             <a class="btn btn--primary" routerLink="/book">Book a shipment</a>
           </div>
@@ -96,7 +97,7 @@ const FILTERS: { value: BookingStatus | ''; label: string }[] = [
     .list { padding:0; overflow:hidden; }
     .pad { padding:20px; }
     .empty { padding:40px 20px; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; }
-    .empty .material-icons { font-size:40px; color:var(--content-muted); }
+    .empty ecb-icon { font-size:40px; color:var(--content-muted); }
     .sub { font:400 12px var(--font-sans); color:var(--content-muted); }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .num { text-align:right; }

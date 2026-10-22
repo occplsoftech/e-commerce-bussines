@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Icon } from '@shared/components/icon';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -9,7 +10,7 @@ import { RuntimeConfigService } from '@core/config/runtime-config.service';
 @Component({
   selector: 'ecb-login',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [Icon, ReactiveFormsModule, RouterLink],
   template: `
     <div class="card app-card">
       <h1 class="text-h1">Sign in</h1>
@@ -36,7 +37,7 @@ import { RuntimeConfigService } from '@core/config/runtime-config.service';
                    autocomplete="current-password" maxlength="128" [class.invalid]="invalid('password')" />
             <button type="button" class="pw__toggle" (click)="showPassword.set(!showPassword())"
                     [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'">
-              <span class="material-icons">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+              <ecb-icon [name]="showPassword() ? 'visibility_off' : 'visibility'" />
             </button>
           </div>
           @if (invalid('password')) { <span class="error">Enter your password.</span> }
@@ -54,7 +55,7 @@ import { RuntimeConfigService } from '@core/config/runtime-config.service';
     </div>
   `,
   styles: [`
-    .card { width:420px; max-width:100%; padding:32px; }
+    .card { width:420px; max-width:100%; padding:32px; border-top:5px solid var(--occpl-color-primary); border-radius:24px; box-shadow:var(--occpl-shadow-md); }
     .lead { margin:4px 0 24px; }
     form { display:flex; flex-direction:column; gap:16px; }
     .pw { position:relative; }

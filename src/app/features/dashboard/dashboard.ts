@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { Icon } from '@shared/components/icon';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
@@ -10,7 +11,7 @@ import { STATUS_VIEW } from '@shared/utils/shipment-status';
 @Component({
   selector: 'ecb-dashboard',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, DatePipe],
+  imports: [Icon, RouterLink, DatePipe],
   template: `
     <section class="page">
       <div class="page__head">
@@ -19,7 +20,7 @@ import { STATUS_VIEW } from '@shared/utils/shipment-status';
           <p class="text-caption">Your shipments at a glance.</p>
         </div>
         <div class="page__actions">
-          <a class="btn btn--primary" routerLink="/book"><span class="material-icons">add</span> Book a shipment</a>
+          <a class="btn btn--primary" routerLink="/book"><ecb-icon name="add" /> Book a shipment</a>
         </div>
       </div>
 
@@ -30,7 +31,7 @@ import { STATUS_VIEW } from '@shared/utils/shipment-status';
       <div class="grid-4 kpis" aria-live="polite">
         @for (k of kpis(); track k.label) {
           <article class="app-card kpi">
-            <span class="material-icons kpi__icon">{{ k.icon }}</span>
+            <ecb-icon [name]="k.icon" class="kpi__icon" />
             <div>
               <div class="kpi__value num-tabular">{{ data() ? k.value : '—' }}</div>
               <div class="kpi__label">{{ k.label }}</div>
@@ -45,7 +46,7 @@ import { STATUS_VIEW } from '@shared/utils/shipment-status';
           <p class="text-caption pad">{{ error() ? 'Not available.' : 'Loading…' }}</p>
         } @else if (data()!.recentShipments.length === 0) {
           <div class="empty">
-            <span class="material-icons">inventory_2</span>
+            <ecb-icon name="inventory_2" />
             <p>No shipments yet. Book your first one — it takes a couple of minutes.</p>
             <a class="btn btn--primary" routerLink="/book">Book a shipment</a>
           </div>
@@ -80,7 +81,7 @@ import { STATUS_VIEW } from '@shared/utils/shipment-status';
     .recent__head h2 { margin:0; }
     .pad { padding:20px; }
     .empty { display:flex; flex-direction:column; align-items:center; gap:10px; padding:40px 20px; text-align:center; color:var(--content-muted); }
-    .empty .material-icons { font-size:40px; color:var(--brand-300); }
+    .empty ecb-icon { font-size:40px; color:var(--brand-300); }
     .table-wrap { overflow-x:auto; }
     table { width:100%; border-collapse:collapse; font:400 14px var(--font-sans); }
     th { text-align:left; font:600 12px var(--font-sans); text-transform:uppercase; letter-spacing:.04em; color:var(--content-muted); padding:12px 20px; background:var(--surface-muted); }

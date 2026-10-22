@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal } from '@angular/core';
+import { Icon } from '@shared/components/icon';
 import { CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PortalService } from '@core/services/portal.service';
@@ -10,7 +11,7 @@ import { BookingSteps } from './booking-steps';
 @Component({
   selector: 'ecb-booking-result',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, CurrencyPipe, BookingSteps],
+  imports: [Icon, RouterLink, CurrencyPipe, BookingSteps],
   template: `
     <section class="page">
       <div class="page__head"><div><h1 class="text-display">Booking result</h1></div></div>
@@ -20,16 +21,16 @@ import { BookingSteps } from './booking-steps';
         <article class="app-card box" [attr.aria-live]="'polite'">
           @switch (b.status) {
             @case ('BOOKED') {
-              <span class="material-icons ok">task_alt</span>
+              <ecb-icon name="task_alt" class="ok" />
               <h2 class="text-h1">Booked with {{ b.providerName }}</h2>
             }
             @case ('FAILED') {
-              <span class="material-icons bad">error</span>
+              <ecb-icon name="error" class="bad" />
               <h2 class="text-h1">Not booked</h2>
               <p class="text-caption">Nothing was booked and nothing is payable. You can choose another courier.</p>
             }
             @default {
-              <span class="material-icons warn">hourglass_top</span>
+              <ecb-icon name="hourglass_top" class="warn" />
               <h2 class="text-h1">Awaiting confirmation</h2>
               <p class="text-caption">{{ b.providerName }} may have accepted this booking. Our team is confirming it — please do not book it again.</p>
             }
@@ -55,7 +56,7 @@ import { BookingSteps } from './booking-steps';
   `,
   styles: [`
     .box { padding:28px; display:flex; flex-direction:column; gap:12px; align-items:flex-start; max-width:720px; }
-    .box .material-icons { font-size:44px; }
+    .box ecb-icon { font-size:44px; }
     .ok { color:var(--success); } .bad { color:var(--danger); } .warn { color:var(--warning); }
     h2 { margin:0; }
     dl { margin:8px 0 0; display:grid; grid-template-columns:max-content 1fr; gap:8px 16px; font:400 14px var(--font-sans); }

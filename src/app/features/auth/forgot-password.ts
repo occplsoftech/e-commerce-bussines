@@ -35,7 +35,7 @@ import { RuntimeConfigService } from '@core/config/runtime-config.service';
     </div>
   `,
   styles: [`
-    .card { width:420px; max-width:100%; padding:32px; }
+    .card { width:420px; max-width:100%; padding:32px; border-top:5px solid var(--occpl-color-primary); border-radius:24px; box-shadow:var(--occpl-shadow-md); }
     .lead { margin:4px 0 20px; }
     form { display:flex; flex-direction:column; gap:16px; }
     .alert { margin-top:16px; }
