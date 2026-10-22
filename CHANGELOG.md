@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.0 — 2026-10-22
+
+- Dashboard: colourful tiles (a large gradient total, one colour per stage), a bar chart of shipments by stage and a donut chart of
+  their share, all inline SVG in the platform palette (light and dark).
+
 ## 0.8.1 — 2026-10-22
 
 - Rate calculator redesigned: the route and package sit in a bar across the top, the rates appear below as a grid of courier cards (three per
