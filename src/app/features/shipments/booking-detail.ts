@@ -9,20 +9,21 @@ import { BOOKING_STATUS_VIEW } from '@shared/utils/booking-status';
 import { errorMessage, saveBlob } from '@shared/utils/http-error';
 import { TransportModePipe } from '@features/booking/transport-mode.pipe';
 import { TrackingTimeline } from './tracking-timeline';
+import { ShipmentProgress } from './shipment-progress';
 
-/** One booking: who, what, the frozen price, live tracking from the courier and the label download. */
+/** One booking: its status flow, who, what, the frozen price, live tracking history from the courier and the label download. */
 import { CourierLogo } from '@shared/components/courier-logo';
 
 @Component({
   selector: 'ecb-booking-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, DatePipe, DecimalPipe, TransportModePipe, TrackingTimeline],
+  imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, DatePipe, DecimalPipe, TransportModePipe, TrackingTimeline, ShipmentProgress],
   template: `
     <section class="page">
       <div class="page__head">
         <div>
           <a class="back" routerLink="/shipments"><ecb-icon name="arrow_back" /> Shipments</a>
-          <h1 class="text-display">Shipment</h1>
+          <h1 class="text-display">Shipment@if (booking()?.trackingNumber; as awb) { <span class="awb">{{ awb }}</span> }</h1>
         </div>
         @if (booking(); as b) {
           <div class="page__actions">
@@ -39,6 +40,15 @@ import { CourierLogo } from '@shared/components/courier-logo';
       @if (labelError()) { <p class="alert alert--warn" role="alert">{{ labelError() }}</p> }
 
       @if (booking(); as b) {
+        <article class="app-card box progress">
+          <div class="row">
+            <h2 class="text-h2">Status</h2>
+            @if (b.status === 'BOOKED' && tracking(); as t) {
+              @if (t.status) { <span class="text-caption">Courier says: <strong>{{ t.status }}</strong>@if (t.currentLocation) { · {{ t.currentLocation }} }</span> }
+            }
+          </div>
+          <ecb-shipment-progress [booking]="b" [tracking]="tracking()" />
+        </article>
         <div class="layout">
           <div class="col">
             <article class="app-card box">
@@ -63,7 +73,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
 
             <article class="app-card box">
               <div class="row">
-                <h2 class="text-h2">Tracking</h2>
+                <h2 class="text-h2">Tracking history</h2>
                 @if (b.status === 'BOOKED') {
                   <button class="btn btn--ghost" type="button" (click)="refreshTracking()" [disabled]="tracking() === undefined">
                     <ecb-icon name="refresh" /> Refresh
@@ -75,9 +85,6 @@ import { CourierLogo } from '@shared/components/courier-logo';
               } @else if (tracking() === undefined) {
                 <p class="text-caption">Asking {{ b.providerName }}…</p>
               } @else if (tracking(); as t) {
-                @if (t.status) {
-                  <p class="now"><strong>{{ t.status }}</strong>@if (t.currentLocation) { · {{ t.currentLocation }} }</p>
-                }
                 @if (!t.available) { <p class="text-caption">{{ t.message }}</p> }
                 <ecb-tracking-timeline [items]="t.events" />
                 <p class="text-caption">Updated {{ t.retrievedAt | date: 'shortTime' }}</p>
@@ -131,6 +138,8 @@ import { CourierLogo } from '@shared/components/courier-logo';
     .back { display:inline-flex; align-items:center; gap:4px; font:600 13px var(--font-sans); color:var(--content-muted); text-decoration:none; }
     .prov { display:flex; align-items:center; gap:12px; margin:0; }
     .back ecb-icon { font-size:18px; }
+    .awb { margin-left:12px; font:600 .5em ui-monospace, SFMono-Regular, Menlo, monospace; color:var(--content-muted); vertical-align:middle; }
+    .progress { margin-bottom:0; }
     .layout { display:grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap:16px; align-items:start; }
     .col { display:flex; flex-direction:column; gap:16px; min-width:0; }
     .box { padding:20px; display:flex; flex-direction:column; gap:12px; }
@@ -141,7 +150,6 @@ import { CourierLogo } from '@shared/components/courier-logo';
     dd { margin:4px 0 0; font:500 14px var(--font-sans); overflow-wrap:anywhere; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .small { font-size:12px; }
-    .now { margin:0; font:400 15px var(--font-sans); }
     .parties { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
     .parties p { margin:4px 0 0; font:400 14px/1.5 var(--font-sans); overflow-wrap:anywhere; white-space:pre-line; }
     .charges { width:100%; border-collapse:collapse; font:400 14px var(--font-sans); }

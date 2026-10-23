@@ -18,6 +18,7 @@ export const API = {
     quote: (id: string) => `/customer-portal/quotes/${encodeURIComponent(id)}`,
     book: '/customer-portal/shipments',
     bookings: '/customer-portal/bookings',
+    bookingCouriers: '/customer-portal/bookings/couriers',
     booking: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}`,
     bookingTracking: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/tracking`,
     bookingLabel: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/label`,

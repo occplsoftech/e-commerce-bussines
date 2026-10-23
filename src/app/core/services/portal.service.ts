@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { API } from '../config/api-endpoints';
 import {
-  AddressRequest, EstimateRequest, SubCustomer, SubCustomerRequest, Booking, BookingDetail, BookingStatus, BookingSummary, Page, PincodeInfo, PortalAddress,
+  AddressRequest, EstimateRequest, SubCustomer, SubCustomerRequest, Booking, BookingDetail, BookingFilter, BookingSummary, Page, PincodeInfo, PortalAddress,
   PortalDashboard, PortalProfile, RateQuote, ShipmentTracking, TrackingView
 } from '../models/portal.model';
 import { ShipmentDraft } from '@features/booking/booking-draft.service';
@@ -37,8 +37,13 @@ export class PortalService {
     return this.api.post<Booking>(API.portal.book, { quoteId, optionId }, { 'Idempotency-Key': idempotencyKey });
   }
 
-  bookings(status: BookingStatus | '' , page: number, size = 20): Observable<Page<BookingSummary>> {
-    return this.api.get<Page<BookingSummary>>(API.portal.bookings, { status, page, size });
+  bookings(filter: BookingFilter, page: number, size = 20): Observable<Page<BookingSummary>> {
+    return this.api.get<Page<BookingSummary>>(API.portal.bookings, { ...filter, page, size });
+  }
+
+  /** The couriers this customer has booked with, for the history filter. */
+  bookingCouriers(): Observable<{ code: string; name: string }[]> {
+    return this.api.get<{ code: string; name: string }[]>(API.portal.bookingCouriers);
   }
 
   booking(bookingId: string): Observable<BookingDetail> { return this.api.get<BookingDetail>(API.portal.booking(bookingId)); }
