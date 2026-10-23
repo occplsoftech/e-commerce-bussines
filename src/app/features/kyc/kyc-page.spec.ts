@@ -8,7 +8,7 @@ import { KycView } from './kyc.service';
 const base = `${environment.apiBaseUrl}/customer-portal/kyc`;
 const view: KycView = {
   subjectName: 'Acme', status: 'PENDING', email: 'ops@acme.in', emailVerified: false, mobile: '9876543210', mobileVerified: true,
-  requiredUploaded: 0, requiredTotal: 2, completedAt: null,
+  requiredUploaded: 0, requiredApproved: 0, requiredTotal: 2, completedAt: null,
   documents: [
     { code: 'GST_CERTIFICATE', label: 'GST certificate', hint: 'GST registration', required: true, uploaded: null },
     { code: 'COMPANY_PAN', label: 'Company PAN card', hint: 'PAN', required: true, uploaded: null }
@@ -32,8 +32,27 @@ describe('KycPage', () => {
     const f = create();
     const text = f.nativeElement.textContent as string;
     expect(text).toContain('GST certificate');
-    expect(text).toContain('1 of 4 steps done');
+    expect(text).toContain('1 of 6 steps done');
     expect(text).toContain('KYC pending');
+  });
+
+  it('shows each document\'s review and why one was rejected', () => {
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    http = TestBed.inject(HttpTestingController);
+    const f = TestBed.createComponent(KycPage);
+    f.detectChanges();
+    const up = (id: string, reviewStatus: 'APPROVED' | 'REJECTED', reviewNote: string | null) =>
+      ({ id, fileName: id + '.pdf', contentType: 'application/pdf', sizeBytes: 1024, uploadedAt: new Date().toISOString(), reviewStatus, reviewNote, reviewedAt: null });
+    http.expectOne(base).flush({ success: true, data: { ...view, requiredUploaded: 1, requiredApproved: 1, documents: [
+      { ...view.documents[0], uploaded: up('g', 'APPROVED', null) },
+      { ...view.documents[1], uploaded: up('p', 'REJECTED', 'PAN number not readable') }
+    ] } });
+    f.detectChanges();
+    const text = f.nativeElement.textContent as string;
+    expect(text).toContain('Approved');
+    expect(text).toContain('Rejected — PAN number not readable');
+    expect(text).toContain('1 document was rejected');
+    expect(text).toContain('3 of 6 steps done');
   });
 
   it('sends then verifies a code, and uploads a document as multipart', () => {

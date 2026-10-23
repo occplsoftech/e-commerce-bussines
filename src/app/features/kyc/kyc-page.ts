@@ -4,14 +4,17 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Icon } from '@shared/components/icon';
 import { NotificationService } from '@core/services/notification.service';
-import { KycChannel, KycService, KycSlot, KycView } from './kyc.service';
+import { KycChannel, KycReviewStatus, KycService, KycSlot } from './kyc.service';
+
+const REVIEW: Record<KycReviewStatus, string> = { PENDING_REVIEW: 'Waiting for approval', APPROVED: 'Approved', REJECTED: 'Rejected' };
+const STATUS = { PENDING: 'KYC pending', UNDER_REVIEW: 'Under review', COMPLETE: 'KYC complete' } as const;
 
 const TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 const MAX_BYTES = 5 * 1024 * 1024;
 
 /**
- * The business customer's KYC: verify e-mail and mobile with a code and upload the business documents. KYC is
- * complete — approved automatically — once everything is done.
+ * The business customer's KYC: verify e-mail and mobile with a code and upload the business documents. The courier
+ * company then approves or rejects each document; KYC is complete once every required one is approved.
  */
 @Component({
   selector: 'ecb-kyc-page',
@@ -22,11 +25,11 @@ const MAX_BYTES = 5 * 1024 * 1024;
       <div class="page__head">
         <div>
           <h1 class="text-display">KYC</h1>
-          <p class="text-caption">Verify your e-mail and mobile and upload your business documents. Approved automatically once everything is done.</p>
+          <p class="text-caption">Verify your e-mail and mobile and upload your business documents. Your courier company then reviews each document.</p>
         </div>
         @if (view(); as v) {
-          <span class="status" [class.ok]="v.status === 'COMPLETE'"><ecb-icon [name]="v.status === 'COMPLETE' ? 'verified_user' : 'hourglass_top'" />
-            {{ v.status === 'COMPLETE' ? 'KYC complete' : 'KYC pending' }}</span>
+          <span class="status" [class.ok]="v.status === 'COMPLETE'" [class.info]="v.status === 'UNDER_REVIEW'">
+            <ecb-icon [name]="v.status === 'COMPLETE' ? 'verified_user' : 'hourglass_top'" /> {{ statusLabels[v.status] }}</span>
         }
       </div>
 
@@ -37,7 +40,11 @@ const MAX_BYTES = 5 * 1024 * 1024;
           <div class="progress" role="progressbar" [attr.aria-valuenow]="done()" [attr.aria-valuemax]="total()">
             <span [style.width.%]="(done() / total()) * 100"></span>
           </div>
-          <p class="text-caption">{{ done() }} of {{ total() }} steps done</p>
+          <p class="text-caption">{{ done() }} of {{ total() }} steps done
+            @if (v.status === 'UNDER_REVIEW') { — everything is in. Your courier company is reviewing your documents. }</p>
+          @if (rejected(); as n) {
+            <p class="alert alert--error" role="alert">{{ n }} document{{ n > 1 ? 's were' : ' was' }} rejected. See the reason below and upload a new file.</p>
+          }
 
           <h2 class="sec">Contact verification</h2>
           @for (c of channels; track c.key) {
@@ -62,11 +69,15 @@ const MAX_BYTES = 5 * 1024 * 1024;
           <h2 class="sec">Business documents</h2>
           @for (d of v.documents; track d.code) {
             <div class="row">
-              <span class="ico" [class.ok]="!!d.uploaded"><ecb-icon [name]="d.uploaded ? 'task_alt' : 'description'" /></span>
+              <span class="ico" [class.ok]="d.uploaded?.reviewStatus === 'APPROVED'" [class.bad]="d.uploaded?.reviewStatus === 'REJECTED'"
+                    [class.wait]="d.uploaded?.reviewStatus === 'PENDING_REVIEW'">
+                <ecb-icon [name]="!d.uploaded ? 'description' : d.uploaded.reviewStatus === 'APPROVED' ? 'task_alt' : d.uploaded.reviewStatus === 'REJECTED' ? 'error' : 'hourglass_top'" /></span>
               <div class="main">
                 <strong>{{ d.label }}@if (!d.required) { <em> (optional)</em> }</strong>
                 @if (d.uploaded; as u) {
                   <span class="muted">{{ u.fileName }} · {{ u.sizeBytes / 1024 | number: '1.0-0' }} KB · {{ u.uploadedAt | date: 'medium' }}</span>
+                  <span class="review" [class.ok]="u.reviewStatus === 'APPROVED'" [class.bad]="u.reviewStatus === 'REJECTED'">
+                    {{ reviewLabels[u.reviewStatus] }}@if (u.reviewStatus === 'REJECTED' && u.reviewNote) { — {{ u.reviewNote }} }</span>
                 } @else { <span class="muted">{{ d.hint }}</span> }
               </div>
               <div class="acts">
@@ -100,6 +111,10 @@ const MAX_BYTES = 5 * 1024 * 1024;
     .row { display:flex; align-items:center; gap:14px; padding:12px 0; border-top:1px solid var(--surface-border); flex-wrap:wrap; }
     .ico { display:grid; place-items:center; width:2.5rem; height:2.5rem; border-radius:12px; background:var(--occpl-color-neutral-surface); color:var(--content-muted); font-size:1.2rem; }
     .ico.ok { background:var(--success-bg); color:var(--success); }
+    .ico.bad { background:var(--danger-bg); color:var(--danger); } .ico.wait { background:var(--warning-bg); color:var(--warning); }
+    .review { font:700 .82rem var(--font-sans); color:var(--warning); }
+    .review.ok { color:var(--success); } .review.bad { color:var(--danger); }
+    .status.info { background:var(--info-bg); color:var(--info); }
     .main { flex:1; min-width:12rem; display:flex; flex-direction:column; gap:2px; }
     .main em { font-style:normal; font-weight:500; color:var(--content-muted); }
     .muted { color:var(--content-muted); font-size:.9rem; }
@@ -122,11 +137,15 @@ export class KycPage implements OnInit {
     { key: 'email', label: 'E-mail address', icon: 'mail' },
     { key: 'mobile', label: 'Mobile number', icon: 'smartphone' }
   ];
+  protected readonly reviewLabels = REVIEW;
+  protected readonly statusLabels = STATUS;
+  /** Each required document counts twice — uploaded, then approved — plus e-mail and mobile. */
   readonly done = computed(() => {
     const v = this.view();
-    return v ? v.requiredUploaded + (v.emailVerified ? 1 : 0) + (v.mobileVerified ? 1 : 0) : 0;
+    return v ? v.requiredUploaded + v.requiredApproved + (v.emailVerified ? 1 : 0) + (v.mobileVerified ? 1 : 0) : 0;
   });
-  readonly total = computed(() => (this.view()?.requiredTotal ?? 0) + 2);
+  readonly total = computed(() => (this.view()?.requiredTotal ?? 0) * 2 + 2);
+  readonly rejected = computed(() => this.view()?.documents.filter((d) => d.uploaded?.reviewStatus === 'REJECTED').length ?? 0);
 
   ngOnInit(): void {
     this.kyc.view().subscribe({ error: (e: HttpErrorResponse) => this.error.set(message(e, 'Your KYC could not be loaded.')) });
