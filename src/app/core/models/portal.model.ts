@@ -129,6 +129,15 @@ export interface RateQuote {
 
 export type BookingStatus = 'PENDING' | 'SUBMITTING' | 'BOOKED' | 'FAILED' | 'OUTCOME_UNKNOWN';
 
+/** Shipment history filter; an empty value means "all". Dates are yyyy-MM-dd, both inclusive. */
+export interface BookingFilter {
+  /** One status, or several comma-separated. */
+  status: string;
+  provider: string;
+  from: string;
+  to: string;
+}
+
 export interface Booking {
   bookingId: string;
   quoteId: string;
