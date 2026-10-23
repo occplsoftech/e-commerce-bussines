@@ -5,20 +5,22 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PortalService } from '@core/services/portal.service';
-import { BookingFilter, BookingSummary, Page } from '@core/models/portal.model';
-import { BOOKING_STATUS_VIEW } from '@shared/utils/booking-status';
+import { BookingFilter, BookingSummary, DeliveryStage, Page } from '@core/models/portal.model';
+import { DELIVERY_STAGE_VIEW, shipmentStatusView } from '@shared/utils/booking-status';
 import { CourierLogo } from '@shared/components/courier-logo';
 
-/** Every booking status; "Submitting" covers both of the server's in-flight states. */
+/** Booking statuses; "Submitting" covers both of the server's in-flight states. */
 const STATUSES: { value: string; label: string }[] = [
-  { value: '', label: 'All statuses' },
-  { value: 'BOOKED', label: 'Booked' },
+  { value: 'BOOKED', label: 'Booked (any delivery status)' },
   { value: 'OUTCOME_UNKNOWN', label: 'Awaiting confirmation' },
   { value: 'PENDING,SUBMITTING', label: 'Submitting' },
   { value: 'FAILED', label: 'Not booked' }
 ];
+/** Where a booked shipment is, as last reported by its courier. */
+const DELIVERIES: { value: string; label: string }[] = (Object.keys(DELIVERY_STAGE_VIEW) as DeliveryStage[])
+  .map((k) => ({ value: k, label: DELIVERY_STAGE_VIEW[k].label }));
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
-const EMPTY: BookingFilter = { status: '', provider: '', from: '', to: '' };
+const EMPTY: BookingFilter = { status: '', delivery: '', provider: '', from: '', to: '' };
 
 /** The customer's bookings made in the portal, newest first, filtered by status, courier and booking date, with paging. */
 
@@ -41,8 +43,14 @@ const EMPTY: BookingFilter = { status: '', provider: '', from: '', to: '' };
       <form class="app-card filters" role="search" aria-label="Filter shipments" (submit)="$event.preventDefault()">
         <div class="field">
           <label for="status-filter">Status</label>
-          <select id="status-filter" [ngModel]="filter().status" name="status" (ngModelChange)="set('status', $event)">
-            @for (f of statuses; track f.value) { <option [value]="f.value">{{ f.label }}</option> }
+          <select id="status-filter" [ngModel]="statusChoice()" name="status" (ngModelChange)="chooseStatus($event)">
+            <option value="">All statuses</option>
+            <optgroup label="Delivery">
+              @for (f of deliveries; track f.value) { <option [value]="'delivery:' + f.value">{{ f.label }}</option> }
+            </optgroup>
+            <optgroup label="Booking">
+              @for (f of statuses; track f.value) { <option [value]="'status:' + f.value">{{ f.label }}</option> }
+            </optgroup>
           </select>
         </div>
         <div class="field">
@@ -97,7 +105,8 @@ const EMPTY: BookingFilter = { status: '', provider: '', from: '', to: '' };
                     <td>{{ b.deliveryName || '—' }}</td>
                     <td class="mono">{{ b.trackingNumber || '—' }}</td>
                     <td class="num num-tabular">{{ b.totalAmount | currency: b.currency : 'symbol' : '1.2-2' }}</td>
-                    <td><span [class]="'badge badge--' + view(b).tone">{{ view(b).label }}</span></td>
+                    <td><span [class]="'badge badge--' + view(b).tone">{{ view(b).label }}</span>
+                      @if (b.deliveryStatus?.location) { <div class="sub">{{ b.deliveryStatus!.location }}</div> }</td>
                   </tr>
                 }
               </tbody>
@@ -160,6 +169,12 @@ export class Shipments implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly statuses = STATUSES;
+  readonly deliveries = DELIVERIES;
+  /** The one Status dropdown covers both filters: "delivery:IN_TRANSIT" or "status:FAILED". */
+  readonly statusChoice = computed(() => {
+    const f = this.filter();
+    return f.delivery ? `delivery:${f.delivery}` : f.status ? `status:${f.status}` : '';
+  });
   readonly today = isoDate(new Date());
   readonly page = signal<Page<BookingSummary> | null>(null);
   readonly filter = signal<BookingFilter>(EMPTY);
@@ -171,9 +186,12 @@ export class Shipments implements OnInit {
   ngOnInit(): void {
     const q = this.route.snapshot.queryParamMap;
     const status = q.get('status') ?? '';
+    const delivery = (q.get('delivery') ?? '').toUpperCase();
     const date = (v: string | null) => (v && DATE.test(v) ? v : '');
+    const deliveryOk = DELIVERIES.some((f) => f.value === delivery);
     this.filter.set({
-      status: STATUSES.some((f) => f.value === status) ? status : '',
+      status: !deliveryOk && STATUSES.some((f) => f.value === status) ? status : '',
+      delivery: deliveryOk ? delivery : '',
       provider: (q.get('provider') ?? '').toUpperCase(),
       from: date(q.get('from')),
       to: date(q.get('to'))
@@ -202,6 +220,12 @@ export class Shipments implements OnInit {
     this.go(0);
   }
 
+  chooseStatus(choice: string): void {
+    const [kind, value] = (choice ?? '').split(':');
+    this.filter.update((f) => ({ ...f, status: kind === 'status' ? value : '', delivery: kind === 'delivery' ? value : '' }));
+    this.go(0);
+  }
+
   lastDays(days: number): void {
     const from = new Date();
     from.setDate(from.getDate() - (days - 1));
@@ -219,13 +243,13 @@ export class Shipments implements OnInit {
     this.page.set(null);
     const f = this.filter();
     this.router.navigate([], {
-      queryParams: { status: f.status || null, provider: f.provider || null, from: f.from || null, to: f.to || null, page: this.current || null },
+      queryParams: { status: f.status || null, delivery: f.delivery || null, provider: f.provider || null, from: f.from || null, to: f.to || null, page: this.current || null },
       replaceUrl: true
     });
     this.load();
   }
 
-  view(b: BookingSummary) { return BOOKING_STATUS_VIEW[b.status]; }
+  view(b: BookingSummary) { return shipmentStatusView(b); }
 }
 
 /** yyyy-MM-dd in the browser's local time (an Indian customer's calendar day). */

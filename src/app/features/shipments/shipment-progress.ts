@@ -54,7 +54,11 @@ export function shipmentProgress(b: BookingDetail, t: TrackingView | null | unde
     if (!reachedAt.has(s)) reachedAt.set(s, e.at);
     if (RANK[s] >= RANK[top] || s === 'RETURNED' || s === 'CANCELLED') top = s;
   }
-  const current = stageOf(t?.status);
+  // No live answer from the courier (not asked yet, or it failed): fall back to the status the server last saved.
+  const saved = b.deliveryStatus ? (b.deliveryStatus.stage === 'AWAITING_PICKUP' ? 'BOOKED' : b.deliveryStatus.stage) as Stage : null;
+  const live = stageOf(t?.status) ?? (events.length ? null : undefined);
+  const current = live === undefined ? saved : live;
+  if (live === undefined && saved && !reachedAt.has(saved)) reachedAt.set(saved, b.deliveryStatus!.at);
   if (current && (RANK[current] >= RANK[top] || current === 'RETURNED' || current === 'CANCELLED')) top = current;
 
   steps.push({ key: 'booked', label: 'Booked', icon: 'check_circle', state: 'done', at: b.bookedAt ?? b.createdAt });
