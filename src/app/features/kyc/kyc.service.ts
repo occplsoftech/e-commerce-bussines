@@ -4,16 +4,22 @@ import { ApiService } from '@core/services/api.service';
 import { API } from '@core/config/api-endpoints';
 
 export type KycChannel = 'email' | 'mobile';
-export interface KycUploaded { id: string; fileName: string; contentType: string; sizeBytes: number; uploadedAt: string; }
+export type KycReviewStatus = 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED';
+export interface KycUploaded {
+  id: string; fileName: string; contentType: string; sizeBytes: number; uploadedAt: string;
+  reviewStatus: KycReviewStatus; reviewNote: string | null; reviewedAt: string | null;
+}
 export interface KycSlot { code: string; label: string; hint: string; required: boolean; uploaded: KycUploaded | null; }
 export interface KycView {
   subjectName: string;
-  status: 'PENDING' | 'COMPLETE';
+  /** PENDING = steps left; UNDER_REVIEW = all done, waiting for the courier company to approve; COMPLETE = approved. */
+  status: 'PENDING' | 'UNDER_REVIEW' | 'COMPLETE';
   email: string | null;
   emailVerified: boolean;
   mobile: string | null;
   mobileVerified: boolean;
   requiredUploaded: number;
+  requiredApproved: number;
   requiredTotal: number;
   documents: KycSlot[];
   completedAt: string | null;

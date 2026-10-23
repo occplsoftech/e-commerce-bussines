@@ -34,10 +34,15 @@ import { STATUS_VIEW } from '@shared/utils/shipment-status';
       @if (kyc.current(); as k) {
         @if (k.status !== 'COMPLETE') {
           <a class="kyc-nudge" routerLink="/kyc">
-            <ecb-icon name="verified_user" />
-            <span><strong>Complete your KYC</strong> — {{ k.requiredUploaded + (k.emailVerified ? 1 : 0) + (k.mobileVerified ? 1 : 0) }} of
-              {{ k.requiredTotal + 2 }} steps done. Verify your e-mail and mobile and upload your business documents.</span>
-            <span class="kyc-nudge__go">Continue →</span>
+            <ecb-icon [name]="k.status === 'UNDER_REVIEW' ? 'hourglass_top' : 'verified_user'" />
+            @if (k.status === 'UNDER_REVIEW') {
+              <span><strong>KYC under review</strong> — your documents are with your courier company for approval.</span>
+              <span class="kyc-nudge__go">View →</span>
+            } @else {
+              <span><strong>Complete your KYC</strong> — {{ k.requiredUploaded + k.requiredApproved + (k.emailVerified ? 1 : 0) + (k.mobileVerified ? 1 : 0) }} of
+                {{ k.requiredTotal * 2 + 2 }} steps done. Verify your e-mail and mobile and upload your business documents.</span>
+              <span class="kyc-nudge__go">Continue →</span>
+            }
           </a>
         }
       }
