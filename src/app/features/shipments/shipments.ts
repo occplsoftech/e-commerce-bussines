@@ -90,7 +90,8 @@ const EMPTY: BookingFilter = { status: '', provider: '', from: '', to: '' };
               <tbody>
                 @for (b of page()!.content; track b.bookingId) {
                   <tr>
-                    <td><a [routerLink]="['/shipments', b.bookingId]">{{ b.createdAt | date: 'mediumDate' }}</a></td>
+                    <td><a class="open" [routerLink]="['/shipments', b.bookingId]">{{ b.createdAt | date: 'mediumDate' }}</a>
+                      <div class="sub">{{ b.createdAt | date: 'shortTime' }}</div></td>
                     <td><span class="prov"><ecb-courier-logo [code]="b.providerCode" [name]="b.providerName" style="--logo-size:2rem" /><span>{{ b.providerName }}@if (b.serviceName) { <div class="sub">{{ b.serviceName }}</div> }</span></span></td>
                     <td>{{ b.pickupCity || b.pickupPincode }} → {{ b.deliveryCity || b.deliveryPincode }}</td>
                     <td>{{ b.deliveryName || '—' }}</td>
@@ -131,12 +132,20 @@ const EMPTY: BookingFilter = { status: '', provider: '', from: '', to: '' };
     @media (max-width: 900px) { .filters { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 520px) { .filters { grid-template-columns:1fr; } }
     .list { padding:0; overflow:hidden; }
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font:400 14px var(--font-sans); }
+    th { text-align:left; font:600 12px var(--font-sans); text-transform:uppercase; letter-spacing:.04em; color:var(--content-muted);
+      padding:12px 20px; background:var(--surface-muted); white-space:nowrap; }
+    td { padding:14px 20px; border-top:1px solid var(--surface-border); white-space:nowrap; vertical-align:middle; }
+    th.num { text-align:right; }
+    .open { color:var(--occpl-color-link); font-weight:700; text-decoration:none; }
+    .open:hover { text-decoration:underline; }
     .pad { padding:20px; }
     .empty { padding:40px 20px; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; }
     .prov { display:flex; align-items:center; gap:10px; }
     .empty ecb-icon { font-size:40px; color:var(--content-muted); }
     .sub { font:400 12px var(--font-sans); color:var(--content-muted); }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:13px; }
     .num { text-align:right; }
     .cards { display:none; list-style:none; margin:0; padding:0; }
     .cards li { border-top:1px solid var(--surface-border); }
