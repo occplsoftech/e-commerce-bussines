@@ -52,6 +52,16 @@ describe('shipment progress', () => {
       ['placed:done', 'booked:done', 'picked:done', 'transit:done', 'ofd:done', 'returned:bad']);
   });
 
+  it('without a live answer, uses the status the server last saved', () => {
+    const b = booking({ deliveryStatus: { stage: 'OUT_FOR_DELIVERY', text: 'Out for delivery', location: 'Delhi',
+      at: '2026-10-22T09:00:00Z', checkedAt: '2026-10-22T09:05:00Z' } });
+    const steps = shipmentProgress(b, null);
+    expect(states(steps)).toEqual(['placed:done', 'booked:done', 'picked:done', 'transit:done', 'ofd:current', 'delivered:todo']);
+    expect(steps.find((s) => s.key === 'ofd')!.at).toBe('2026-10-22T09:00:00Z');
+    expect(states(shipmentProgress(booking({ deliveryStatus: { stage: 'AWAITING_PICKUP', text: null, location: null, at: null,
+      checkedAt: null } }), undefined))).toEqual(['placed:done', 'booked:current', 'picked:todo', 'transit:todo', 'ofd:todo', 'delivered:todo']);
+  });
+
   it('a booking that did not go through, or is unconfirmed', () => {
     expect(states(shipmentProgress(booking({ status: 'FAILED', message: 'Pincode not serviceable' }), null)))
       .toEqual(['placed:done', 'booked:bad']);

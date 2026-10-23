@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PortalService } from '@core/services/portal.service';
 import { BookingDetail as Detail, BookingParty, TrackingView } from '@core/models/portal.model';
-import { BOOKING_STATUS_VIEW } from '@shared/utils/booking-status';
+import { shipmentStatusView } from '@shared/utils/booking-status';
 import { errorMessage, saveBlob } from '@shared/utils/http-error';
 import { TransportModePipe } from '@features/booking/transport-mode.pipe';
 import { TrackingTimeline } from './tracking-timeline';
@@ -43,8 +43,11 @@ import { CourierLogo } from '@shared/components/courier-logo';
         <article class="app-card box progress">
           <div class="row">
             <h2 class="text-h2">Status</h2>
-            @if (b.status === 'BOOKED' && tracking(); as t) {
-              @if (t.status) { <span class="text-caption">Courier says: <strong>{{ t.status }}</strong>@if (t.currentLocation) { · {{ t.currentLocation }} }</span> }
+            @if (b.status === 'BOOKED' && tracking()?.status) {
+              <span class="text-caption">Courier says: <strong>{{ tracking()!.status }}</strong>@if (tracking()!.currentLocation) { · {{ tracking()!.currentLocation }} }</span>
+            } @else if (b.deliveryStatus; as d) {
+              <span class="text-caption">Last update: <strong>{{ d.text || d.stage }}</strong>@if (d.location) { · {{ d.location }} }
+                @if (d.checkedAt) { · checked {{ d.checkedAt | date: 'd MMM, h:mm a' }} }</span>
             }
           </div>
           <ecb-shipment-progress [booking]="b" [tracking]="tracking()" />
@@ -211,7 +214,7 @@ export class BookingDetail implements OnInit {
     });
   }
 
-  statusView(b: Detail) { return BOOKING_STATUS_VIEW[b.status]; }
+  statusView(b: Detail) { return shipmentStatusView(b); }
 
   party(p: BookingParty): string {
     return [p.name, p.phone, p.address, [p.city, p.state].filter((x) => !!x).join(', '), p.pincode].filter((x) => !!x).join('\n');

@@ -37,7 +37,8 @@ describe('Shipments', () => {
     fixture.detectChanges();
     const options = (id: string) => Array.from(fixture.nativeElement.querySelectorAll(`#${id} option`) as NodeListOf<HTMLOptionElement>)
       .map((o) => o.textContent?.trim());
-    expect(options('status-filter')).toEqual(['All statuses', 'Booked', 'Awaiting confirmation', 'Submitting', 'Not booked']);
+    expect(options('status-filter')).toEqual(['All statuses', 'Awaiting pickup', 'Picked up', 'In transit', 'Out for delivery',
+      'Delivered', 'Returned', 'Cancelled', 'Booked (any delivery status)', 'Awaiting confirmation', 'Submitting', 'Not booked']);
     expect(options('courier-filter')).toEqual(['All couriers', 'Delhivery', 'Shiprocket']);
     expect(fixture.nativeElement.textContent).toContain('AWB1');
   });
@@ -45,7 +46,7 @@ describe('Shipments', () => {
   it('sends status, courier and date range, and keeps the range valid', () => {
     const c = create().componentInstance;
     list().flush({ data: empty });
-    c.set('status', 'PENDING,SUBMITTING');
+    c.chooseStatus('status:PENDING,SUBMITTING');
     list().flush({ data: empty });
     c.set('provider', 'DELHIVERY');
     list().flush({ data: empty });
@@ -58,6 +59,26 @@ describe('Shipments', () => {
     expect(req.request.params.get('from')).toBe('2026-10-20');
     expect(req.request.params.get('to')).toBe('2026-10-20');
     req.flush({ data: empty });
+  });
+
+  it('a delivery status replaces the booking status filter, and the badge shows where a booked shipment is', () => {
+    const fixture = create();
+    list().flush({ data: { ...empty, content: [{ ...row, deliveryStatus: { stage: 'OUT_FOR_DELIVERY', text: 'Out for delivery',
+      location: 'Delhi', at: null, checkedAt: null } }], totalElements: 1, totalPages: 1 } });
+    fixture.detectChanges();
+    const badge = fixture.nativeElement.querySelector('tbody .badge') as HTMLElement;
+    expect(badge.textContent?.trim()).toBe('Out for delivery');
+    expect(badge.className).toContain('badge--warn');
+
+    const c = fixture.componentInstance;
+    c.chooseStatus('status:FAILED');
+    list().flush({ data: empty });
+    c.chooseStatus('delivery:DELIVERED');
+    const req = list();
+    expect(req.request.params.get('delivery')).toBe('DELIVERED');
+    expect(req.request.params.has('status')).toBe(false);
+    req.flush({ data: empty });
+    expect(c.statusChoice()).toBe('delivery:DELIVERED');
   });
 
   it('reads the filter from the address, and Clear filters removes it', () => {

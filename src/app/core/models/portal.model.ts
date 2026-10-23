@@ -133,6 +133,8 @@ export type BookingStatus = 'PENDING' | 'SUBMITTING' | 'BOOKED' | 'FAILED' | 'OU
 export interface BookingFilter {
   /** One status, or several comma-separated. */
   status: string;
+  /** One delivery stage (booked shipments only), or several comma-separated. */
+  delivery: string;
   provider: string;
   from: string;
   to: string;
@@ -167,6 +169,18 @@ export interface Page<T> {
 }
 
 /** One row of the booking history. */
+/** Where a booked shipment is, as last reported by its courier (kept fresh by the server). */
+export type DeliveryStage = 'AWAITING_PICKUP' | 'PICKED_UP' | 'IN_TRANSIT' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'RETURNED' | 'CANCELLED';
+export interface DeliveryInfo {
+  stage: DeliveryStage;
+  /** The courier's own words, e.g. "Reached at destination hub". */
+  text: string | null;
+  location: string | null;
+  at: string | null;
+  /** When the server last asked the courier. */
+  checkedAt: string | null;
+}
+
 export interface BookingSummary {
   bookingId: string;
   status: BookingStatus;
@@ -186,6 +200,7 @@ export interface BookingSummary {
   currency: string;
   createdAt: string;
   bookedAt: string | null;
+  deliveryStatus?: DeliveryInfo | null;
 }
 
 export interface BookingParty { name: string | null; phone: string | null; address: string | null; pincode: string | null; city: string | null; state: string | null; }
@@ -228,6 +243,7 @@ export interface BookingDetail {
   submittedAt: string | null;
   bookedAt: string | null;
   createdAt: string;
+  deliveryStatus?: DeliveryInfo | null;
 }
 
 export interface TrackingEvent { at: string | null; status: string | null; location: string | null; description: string | null; }
