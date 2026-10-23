@@ -40,7 +40,9 @@ const PATHS: Record<string, string> = {
   mail: 'M4 6h16v12H4zM4 7l8 6 8-6',
   smartphone: 'M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM11 18h2',
   chevron_left: 'M15 6l-6 6 6 6',
-  chevron_right: 'M9 6l6 6-6 6'
+  chevron_right: 'M9 6l6 6-6 6',
+  home: 'M4 11l8-7 8 7M6 9.5V20h12V9.5M10 20v-5h4v5',
+  location_on: 'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5'
 };
 
 @Component({
