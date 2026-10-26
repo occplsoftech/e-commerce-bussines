@@ -37,6 +37,7 @@ const PATHS: Record<string, string> = {
   upload: 'M12 16V4M7 9l5-5 5 5M5 20h14',
   download: 'M12 4v12M7 11l5 5 5-5M5 20h14',
   description: 'M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6',
+  account_balance_wallet: 'M4 7a2 2 0 0 1 2-2h12v3M4 7v11a2 2 0 0 0 2 2h14V8H6a2 2 0 0 1-2-2M16 14h.01',
   mail: 'M4 6h16v12H4zM4 7l8 6 8-6',
   smartphone: 'M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM11 18h2',
   chevron_left: 'M15 6l-6 6 6 6',

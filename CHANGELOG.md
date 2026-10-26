@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.11.0 — 2026-10-26
+
+- Wallet (menu "Wallet"): the customer's prepaid balance, the statement (every credit and debit, newest first, paged) and the
+  top-up requests. Money is added online with Razorpay ("Pay online"), or by bank transfer / cash: upload the receipt and the courier
+  company credits the wallet once they approve the request (a rejection shows its reason). Needs courier-service customer wallets
+  (V136, V137). The server credits what the gateway reports as paid, never the browser's figure; if the confirmation call fails after
+  a payment the page says the credit still arrives automatically.
+- Booking: when the wallet cannot pay (short balance or suspended) the confirmation page says so and links to the wallet; the next
+  attempt after a refusal uses a new Idempotency-Key (the refused attempt is recorded as failed under the old one). Whether bookings are
+  paid from the wallet at all is a courier-company setting (`CUSTOMER_PORTAL_WALLET_PAYMENT_ENABLED`, off by default).
+- Security headers (`docker/security-headers.conf`): Razorpay Checkout needs `https://checkout.razorpay.com` as a script source, its
+  frames and API/telemetry hosts, `payment` allowed in the permissions policy and `Cross-Origin-Opener-Policy:
+  same-origin-allow-popups` (bank pages open in a popup). Nothing else was loosened.
+
 ## 0.10.0 — 2026-10-22
 
 - KYC (menu "KYC"): the business customer verifies e-mail and mobile with a code and uploads the business documents (GST

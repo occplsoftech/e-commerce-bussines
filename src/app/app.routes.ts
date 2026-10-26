@@ -30,6 +30,7 @@ export const routes: Routes = [
       { path: 'shipments/:bookingId', loadComponent: () => import('@features/shipments/booking-detail').then((m) => m.BookingDetail), title: 'Shipment · OCCPL SOFTECH' },
       { path: 'customers', loadComponent: () => import('@features/customers/customers').then((m) => m.Customers), title: 'My customers · OCCPL SOFTECH' },
       { path: 'customers/:id', loadComponent: () => import('@features/customers/customer-detail').then((m) => m.CustomerDetail), title: 'Customer · OCCPL SOFTECH' },
+      { path: 'wallet', loadComponent: () => import('@features/wallet/wallet-page').then((m) => m.WalletPage), title: 'Wallet · OCCPL SOFTECH' },
       { path: 'kyc', loadComponent: () => import('@features/kyc/kyc-page').then((m) => m.KycPage), title: 'KYC · OCCPL SOFTECH' },
       { path: 'profile', loadComponent: () => import('@features/profile/profile').then((m) => m.Profile), title: 'Profile · OCCPL SOFTECH' },
     ]
