@@ -65,4 +65,31 @@ describe('ConfirmBooking', () => {
       .flush({ errorCode: 'QUOTE_EXPIRED', message: 'expired' }, { status: 409, statusText: 'Conflict' });
     expect(c.error()).toContain('refresh');
   });
+
+  it('a wallet refusal offers the wallet page and the next attempt uses a new Idempotency-Key', () => {
+    const c = create();
+    c.confirm();
+    const first = http.expectOne('/api/v1/customer-portal/shipments');
+    const key = first.request.headers.get('Idempotency-Key');
+    first.flush({ message: 'Insufficient wallet balance. Available INR 10.00, required INR 100.62.' }, { status: 422, statusText: 'Unprocessable' });
+
+    expect(c.error()).toContain('Insufficient wallet balance');
+    expect(c.walletProblem()).toBe(true);
+
+    c.confirm();
+    const second = http.expectOne('/api/v1/customer-portal/shipments');
+    expect(second.request.headers.get('Idempotency-Key')).not.toBe(key);
+  });
+
+  it('keeps the key after a server error, because the booking may have been made', () => {
+    const c = create();
+    c.confirm();
+    const first = http.expectOne('/api/v1/customer-portal/shipments');
+    const key = first.request.headers.get('Idempotency-Key');
+    first.flush({ message: 'boom' }, { status: 503, statusText: 'Unavailable' });
+
+    c.confirm();
+    expect(http.expectOne('/api/v1/customer-portal/shipments').request.headers.get('Idempotency-Key')).toBe(key);
+    expect(c.walletProblem()).toBe(false);
+  });
 });

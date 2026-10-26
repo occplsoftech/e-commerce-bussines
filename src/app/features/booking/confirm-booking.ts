@@ -29,6 +29,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
       <ecb-booking-steps [current]="2" />
 
       @if (error()) { <p class="alert alert--error" role="alert">{{ error() }}</p> }
+      @if (walletProblem()) { <p><a class="btn btn--primary" routerLink="/wallet">Add money to your wallet</a></p> }
 
       @if (option(); as o) {
         <div class="grid-2">
@@ -107,8 +108,14 @@ export class ConfirmBooking implements OnInit {
     const q = this.quote();
     return !!q && (q.status === 'EXPIRED' || new Date(q.expiresAt).getTime() <= Date.now());
   });
-  /** One key for this confirmation; a retry after a network error reuses it. */
-  private readonly key = newIdempotencyKey();
+  /** The wallet could not pay (short balance, suspended): the customer can fix that on the wallet page and come back. */
+  readonly walletProblem = computed(() => /wallet/i.test(this.error() ?? ''));
+  /**
+   * One key per attempt. A retry after a network error or a server error reuses it (the server may have booked, and answers with
+   * that booking). A definite refusal (4xx) starts a new key: the refused attempt is on record as failed under the old one, so
+   * reusing it after the customer tops up the wallet would only return that failed booking.
+   */
+  private key = newIdempotencyKey();
 
   ngOnInit(): void {
     this.portal.quote(this.quoteId()).subscribe({
@@ -129,6 +136,7 @@ export class ConfirmBooking implements OnInit {
       error: (e: HttpErrorResponse) => {
         this.submitting.set(false);
         const code = e.error?.errorCode as string | undefined;
+        if (e.status >= 400 && e.status < 500) this.key = newIdempotencyKey();
         if (code === 'QUOTE_EXPIRED') this.error.set('These rates have expired. Go back and refresh them before booking.');
         else if (code === 'QUOTE_ALREADY_BOOKED') this.error.set('This quote has already been booked. Check your dashboard.');
         else if (e.status === 0 || e.status >= 500) this.error.set('We could not confirm the booking. Click Book again — you will not be booked twice.');
