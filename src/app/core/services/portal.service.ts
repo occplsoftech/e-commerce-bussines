@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { API } from '../config/api-endpoints';
 import {
-  AddressRequest, EstimateRequest, SubCustomer, SubCustomerRequest, Booking, BookingDetail, BookingFilter, BookingSummary, Page, PincodeInfo, PortalAddress,
+  AddressRequest, EstimateRequest, InternationalCountry, InternationalEstimateRequest, SubCustomer, SubCustomerRequest, Booking, BookingDetail, BookingFilter, BookingSummary, Page, PincodeInfo, PortalAddress,
   PortalDashboard, PortalProfile, RateQuote, ShipmentTracking, TrackingView
 } from '../models/portal.model';
 import { ShipmentDraft } from '@features/booking/booking-draft.service';
@@ -26,6 +26,14 @@ export class PortalService {
 
   /** Rate calculator: prices from pincodes and a package only. Nothing is stored; the options cannot be booked as they are. */
   estimateRates(body: EstimateRequest): Observable<RateQuote> { return this.api.post<RateQuote>(API.portal.estimateRates, body); }
+
+  /** International rates (sKart); nothing stored. */
+  estimateInternational(body: InternationalEstimateRequest): Observable<RateQuote> {
+    return this.api.post<RateQuote>(API.portal.internationalEstimate, body);
+  }
+
+  /** Countries the connected international courier ships to (empty when none is connected). */
+  internationalCountries(): Observable<InternationalCountry[]> { return this.api.get<InternationalCountry[]>(API.portal.internationalCountries); }
 
   quote(quoteId: string): Observable<RateQuote> { return this.api.get<RateQuote>(API.portal.quote(quoteId)); }
 

@@ -268,6 +268,19 @@ export interface ShipmentTracking {
 }
 
 /** The rate calculator's input: two pincodes and a package. Dimensions are optional. */
+/** International price check (sKart): Indian pincode to a country and postcode. */
+export type InternationalKind = 'PARCEL' | 'DOCUMENT' | 'COMMERCIAL';
+export interface InternationalEstimateRequest {
+  originPincode: string;
+  destinationCountry: string;
+  destinationPostcode: string;
+  kind: InternationalKind;
+  weightKg: number;
+  pieces: number;
+  maxLengthCm: number | null;
+}
+export interface InternationalCountry { id: number; code: string; name: string; region: string | null; postcodeRequired: boolean; }
+
 export interface EstimateRequest {
   pickupPincode: string;
   deliveryPincode: string;

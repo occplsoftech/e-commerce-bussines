@@ -54,4 +54,15 @@ describe('RateCalculator', () => {
     expect(d.package.actualWeightKg).toBe(5);
     expect(nav).toHaveBeenCalledWith(['/book']);
   });
+
+  it('switches to the International tab, which loads the destination countries', () => {
+    const fixture = create();
+    const c = fixture.componentInstance;
+    c.setScope('international');
+    fixture.detectChanges();
+    expect(c.scope()).toBe('international');
+    http.expectOne(`${environment.apiBaseUrl}/customer-portal/international/countries`).flush({ data: [] });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('International rates are not available yet');
+  });
 });
