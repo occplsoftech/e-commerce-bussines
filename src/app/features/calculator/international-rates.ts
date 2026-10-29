@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Icon } from '@shared/components/icon';
 import { CourierLogo } from '@shared/components/courier-logo';
+import { CountryPicker } from './country-picker';
 import { PortalService } from '@core/services/portal.service';
 import { InternationalCountry, InternationalKind, RateOption, RateQuote } from '@core/models/portal.model';
 import { pincodeValidator, positiveNumber, wholeNumber } from '@features/booking/booking-validators';
@@ -16,7 +17,7 @@ import { pincodeValidator, positiveNumber, wholeNumber } from '@features/booking
 @Component({
   selector: 'ecb-international-rates',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icon, CourierLogo, ReactiveFormsModule, CurrencyPipe],
+  imports: [Icon, CourierLogo, CountryPicker, ReactiveFormsModule, CurrencyPipe],
   template: `
     @if (countries() !== null && countries()!.length === 0) {
       <div class="empty">
@@ -30,12 +31,9 @@ import { pincodeValidator, positiveNumber, wholeNumber } from '@features/booking
             <label for="ir-from">From pincode</label>
             <input id="ir-from" formControlName="originPincode" inputmode="numeric" maxlength="6" placeholder="Pickup" autocomplete="off" />
           </div>
-          <div class="f">
+          <div class="f f--country">
             <label for="ir-country">To country</label>
-            <input id="ir-country" formControlName="destinationCountry" list="ir-countries" placeholder="Type to search" autocomplete="off" />
-            <datalist id="ir-countries">
-              @for (c of countries() ?? []; track c.id) { <option [value]="c.name">{{ c.region }}</option> }
-            </datalist>
+            <ecb-country-picker inputId="ir-country" formControlName="destinationCountry" [countries]="countries() ?? []" placeholder="Type a country" />
           </div>
           <div class="f">
             <label for="ir-zip">Postcode</label>
@@ -136,7 +134,7 @@ import { pincodeValidator, positiveNumber, wholeNumber } from '@features/booking
     .empty { display:flex; flex-direction:column; align-items:center; gap:10px; padding:56px 24px; text-align:center; color:var(--content-muted); border:2px dashed var(--surface-border); border-radius:24px; font-size:2.2rem; }
     .empty p { margin:0; font-size:1rem; max-width:28rem; }
     @media (max-width: 70rem) { .bar__row { grid-template-columns:repeat(2, minmax(0, 1fr)); } .go { grid-column:1 / -1; } .grid { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 40rem) { .bar__row { grid-template-columns:repeat(2, minmax(0, 1fr)); } .grid { grid-template-columns:minmax(0, 1fr); } }
+    @media (max-width: 40rem) { .bar__row { grid-template-columns:repeat(2, minmax(0, 1fr)); } .f--country { grid-column:1 / -1; } .grid { grid-template-columns:minmax(0, 1fr); } }
   `]
 })
 export class InternationalRates implements OnInit {
