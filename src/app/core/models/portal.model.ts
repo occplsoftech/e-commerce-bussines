@@ -81,6 +81,7 @@ export interface PincodeInfo {
   area: string | null;
   city: string | null;
   district: string | null;
+  state?: string | null;
   serviceable: boolean;
   pickupAvailable: boolean;
   codAvailable: boolean;
