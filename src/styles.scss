@@ -98,11 +98,14 @@ h1, h2, h3 { font-family: var(--font-display); }
 .page__head h1, .page h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.02em; margin: 0; }
 
 
-/* Printing the shipping label: only the label is shown, on a 100 x 150 mm page. */
+/* Printing shipping labels on A4: the result page copies them into #ecb-print-root, four to a sheet (2 x 2), dashed lines to cut along. */
+#ecb-print-root { display: none; }
 @media print {
-  @page { size: 100mm 150mm; margin: 0; }
-  html:has(body.printing-label), body.printing-label { height: 150mm !important; overflow: hidden !important; }
-  body.printing-label * { visibility: hidden !important; }
-  body.printing-label .ecb-label, body.printing-label .ecb-label * { visibility: visible !important; }
-  body.printing-label .ecb-label { position: fixed; left: 0; top: 0; width: 100mm; min-height: 150mm; border: 0; margin: 0; }
+  @page { size: A4 portrait; margin: 4mm; }
+  html:has(body.printing-label), body.printing-label { background: #fff !important; }
+  body.printing-label > *:not(#ecb-print-root) { display: none !important; }
+  body.printing-label #ecb-print-root { display: block; }
+  body.printing-label #ecb-print-root .ecb-sheet { display: grid; grid-template-columns: repeat(2, 100mm); grid-auto-rows: 143mm; justify-content: start; break-after: page; page-break-after: always; }
+  body.printing-label #ecb-print-root .ecb-sheet:last-child { break-after: auto; page-break-after: auto; }
+  body.printing-label #ecb-print-root .ecb-label { width: 100mm; height: 143mm; min-height: 0; margin: 0; overflow: hidden; border: 1px dashed #777; break-inside: avoid; }
 }
