@@ -6,7 +6,7 @@ import { PortalService } from '@core/services/portal.service';
 import { PincodeInfo, PortalAddress } from '@core/models/portal.model';
 import { PINCODE } from './booking-validators';
 
-/** Contact + address + pincode for pickup or delivery. A valid pincode fills the city and shows coverage. */
+/** Contact + address + pincode for pickup or delivery. A valid pincode fills the city and state and shows coverage. */
 @Component({
   selector: 'ecb-party-fields',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -111,9 +111,24 @@ export class PartyFields implements OnInit {
     ).subscribe((info) => {
       this.checking.set(false);
       this.info.set(info);
-      const city = this.group().get('city')!;
-      if (info?.known && info.city && !city.value) city.setValue(info.city);
+      if (info?.known) {
+        this.autofill('city', info.city ?? info.district);
+        this.autofill('state', info.state);
+      }
     });
+  }
+
+  private readonly autoValue: Record<string, string> = {};
+
+  /** Fills a field from the pincode unless the person typed their own value (a field still holding the last auto-filled one is replaced). */
+  private autofill(field: 'city' | 'state', value: string | null | undefined): void {
+    const c = this.group().get(field);
+    if (!c || !value) return;
+    const cur = (c.value ?? '').toString();
+    if (cur === '' || cur === this.autoValue[field]) {
+      c.setValue(value);
+      this.autoValue[field] = value;
+    }
   }
 
   constructor() {
