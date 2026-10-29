@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal, viewChild } from '@angular/core';
 import { Icon } from '@shared/components/icon';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -8,8 +8,11 @@ import { BookingDetail as Detail, BookingParty, TrackingView } from '@core/model
 import { shipmentStatusView } from '@shared/utils/booking-status';
 import { errorMessage, saveBlob } from '@shared/utils/http-error';
 import { TransportModePipe } from '@features/booking/transport-mode.pipe';
+import { PaymentLabelPipe } from '@features/booking/payment-mode.pipe';
 import { TrackingTimeline } from './tracking-timeline';
 import { ShipmentProgress } from './shipment-progress';
+import { LabelSheet } from '@features/booking/label-sheet';
+import { BookingPhotos } from '@features/booking/booking-photos';
 
 /** One booking: its status flow, who, what, the frozen price, live tracking history from the courier and the label download. */
 import { CourierLogo } from '@shared/components/courier-logo';
@@ -17,7 +20,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
 @Component({
   selector: 'ecb-booking-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, DatePipe, DecimalPipe, TransportModePipe, TrackingTimeline, ShipmentProgress],
+  imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, DatePipe, DecimalPipe, TransportModePipe, PaymentLabelPipe, TrackingTimeline, ShipmentProgress, LabelSheet, BookingPhotos],
   template: `
     <section class="page">
       <div class="page__head">
@@ -27,6 +30,9 @@ import { CourierLogo } from '@shared/components/courier-logo';
         </div>
         @if (booking(); as b) {
           <div class="page__actions">
+            @if (b.status === 'BOOKED' || b.status === 'OUTCOME_UNKNOWN') {
+              <button class="btn btn--ghost" type="button" (click)="printLabel()"><ecb-icon name="print" /> Print label</button>
+            }
             @if (b.labelDownloadable) {
               <button class="btn btn--primary" type="button" (click)="downloadLabel(b)" [disabled]="downloading()">
                 <ecb-icon name="print" /> {{ downloading() ? 'Preparing…' : 'Download label' }}
@@ -114,9 +120,12 @@ import { CourierLogo } from '@shared/components/courier-logo';
                   <div><dt>Weight</dt><dd>{{ p.actualWeightKg | number: '1.0-3' }} kg@if (p.chargeableWeightKg) { (charged {{ p.chargeableWeightKg | number: '1.0-3' }} kg) }</dd></div>
                   @if (p.length) { <div><dt>Size</dt><dd>{{ p.length }} × {{ p.breadth }} × {{ p.height }} {{ (p.dimensionUnit || 'cm') === 'IN' ? 'in' : 'cm' }}</dd></div> }
                   <div><dt>Declared value</dt><dd>{{ p.declaredValue | currency: 'INR' : 'symbol' : '1.2-2' }}</dd></div>
-                  <div><dt>Payment</dt><dd>{{ p.paymentMode === 'COD' ? 'Cash on delivery' : 'Prepaid' }}</dd></div>
+                  <div><dt>Payment</dt><dd>{{ p.paymentMode | paymentLabel }}</dd></div>
                 </dl>
               </article>
+            }
+            @if (b.status !== 'FAILED') {
+              <article class="app-card box"><ecb-booking-photos [bookingId]="b.bookingId" [editable]="b.status === 'BOOKED' || b.status === 'OUTCOME_UNKNOWN'" /></article>
             }
             <article class="app-card box">
               <h2 class="text-h2">Price</h2>
@@ -132,6 +141,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
             </article>
           </div>
         </div>
+        @if (showLabel()) { <ecb-label-sheet [booking]="b" /> }
       } @else if (!error()) {
         <p class="text-caption">Loading…</p>
       }
@@ -173,6 +183,14 @@ export class BookingDetail implements OnInit {
   readonly trackingError = signal('Tracking could not be loaded. Please try again.');
   readonly labelError = signal<string | null>(null);
   readonly downloading = signal(false);
+  readonly showLabel = signal(false);
+  private readonly sheet = viewChild(LabelSheet);
+
+  /** Print the label again: our own label (Code 128 of the reference), four to an A4 sheet. */
+  printLabel(): void {
+    this.showLabel.set(true);
+    setTimeout(() => this.sheet()?.print(), 150);
+  }
 
   ngOnInit(): void {
     this.portal.booking(this.bookingId()).subscribe({

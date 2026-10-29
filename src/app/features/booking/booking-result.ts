@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal, viewChild } from '@angular/core';
 import { Icon } from '@shared/components/icon';
 import { CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
@@ -6,7 +6,9 @@ import { PortalService } from '@core/services/portal.service';
 import { BookingDetail } from '@core/models/portal.model';
 import { BookingDraftService } from './booking-draft.service';
 import { BookingSteps } from './booking-steps';
-import { ShippingLabel } from './shipping-label';
+import { PaymentIconPipe, PaymentLabelPipe } from './payment-mode.pipe';
+import { LabelSheet } from './label-sheet';
+import { BookingPhotos } from './booking-photos';
 
 /** Step 5: what happened — booked, failed (nothing booked) or awaiting confirmation with the courier. */
 import { CourierLogo } from '@shared/components/courier-logo';
@@ -14,7 +16,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
 @Component({
   selector: 'ecb-booking-result',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, BookingSteps, ShippingLabel],
+  imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, BookingSteps, LabelSheet, BookingPhotos, PaymentLabelPipe, PaymentIconPipe],
   template: `
     <section class="page">
       <ecb-booking-steps [current]="3" />
@@ -70,7 +72,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
                   <div><dt><ecb-icon name="scale" /> Weight</dt><dd>{{ b.parcel?.chargeableWeightKg ?? b.parcel?.actualWeightKg ?? '—' }} kg</dd></div>
                   <div><dt><ecb-icon name="inventory_2" /> Packages</dt><dd>{{ b.parcel?.packageCount ?? '—' }}</dd></div>
                   <div><dt><ecb-icon name="description" /> Contents</dt><dd>{{ b.parcel?.contents || '—' }}</dd></div>
-                  <div><dt><ecb-icon [name]="b.parcel?.paymentMode === 'COD' ? 'payments' : 'account_balance_wallet'" /> Payment</dt><dd>{{ b.parcel?.paymentMode === 'COD' ? 'Cash on delivery' : 'Prepaid' }}</dd></div>
+                  <div><dt><ecb-icon [name]="b.parcel?.paymentMode | paymentIcon" /> Payment</dt><dd>{{ b.parcel?.paymentMode | paymentLabel }}</dd></div>
                 </dl>
               </div>
 
@@ -107,16 +109,10 @@ import { CourierLogo } from '@shared/components/courier-logo';
             }
           </div>
 
-          @if (showLabel() && b.status !== 'FAILED') {
-            <section class="labelbox">
-              <div class="labelbox__bar">
-                <div><strong>{{ labelCount(b) > 1 ? labelCount(b) + ' shipping labels' : 'Shipping label' }}</strong>
-                  <span class="text-caption"> Prints on A4, four to a sheet. {{ labelCount(b) > 1 ? 'One for each package: cut along the dashed lines and stick each on its own box.' : 'Cut along the dashed lines and stick it on the parcel.' }}</span></div>
-                <button class="btn btn--primary" type="button" (click)="printLabel()"><ecb-icon name="print" /> Print{{ labelCount(b) > 1 ? ' all ' + labelCount(b) : '' }}</button>
-              </div>
-              @for (n of labelNumbers(b); track n) { <ecb-shipping-label [booking]="b" [index]="n" [total]="labelCount(b)" /> }
-            </section>
+          @if (b.status !== 'FAILED') {
+            <article class="app-card photos"><ecb-booking-photos [bookingId]="b.bookingId" [uploadPending]="true" [editable]="b.status === 'BOOKED' || b.status === 'OUTCOME_UNKNOWN'" /></article>
           }
+          @if (showLabel() && b.status !== 'FAILED') { <ecb-label-sheet [booking]="b" /> }
         </div>
       } @else if (!error()) {
         <p class="text-caption">Loading…</p>
@@ -185,10 +181,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
     .actions { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
     .btn--cta { padding-inline:2rem; box-shadow:0 10px 24px rgb(214 31 69 / 30%); }
 
-    .labelbox { display:flex; flex-direction:column; align-items:center; gap:14px; padding:18px; border:1px dashed var(--surface-border); border-radius:var(--r-card); background:var(--occpl-color-neutral-surface); }
-    .labelbox__bar { width:100%; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-    .labelbox ecb-shipping-label { box-shadow:var(--shadow-md); max-width:100%; overflow-x:auto; }
-    .labelbox { max-height:none; }
+    .photos { padding:20px; }
     @media (prefers-reduced-motion: reduce) { .check circle, .check path { animation:none; stroke-dashoffset:0; } .burst { display:none; } .track .now .n { animation:none; } }
     @media (max-width: 760px) {
       .waybill { grid-template-columns:1fr; }
@@ -220,29 +213,14 @@ export class BookingResult implements OnInit {
   readonly copied = signal(false);
   readonly showLabel = signal(false);
 
-  /** Shows the label, then prints just that (the page's own print rule hides everything else while body has `printing-label`). */
+  private readonly sheet = viewChild(LabelSheet);
+
+  /** Shows the labels, then prints them (the sheet copies them into the print container). */
   printLabel(): void {
     this.showLabel.set(true);
-    setTimeout(() => {
-      // copies of the labels go into their own container on the body, so the print rule can hide the whole app and give each label a page
-      const root = document.createElement('div');
-      root.id = 'ecb-print-root';
-      let sheet: HTMLElement | null = null;
-      document.querySelectorAll('.labelbox .ecb-label').forEach((l, i) => {
-        if (i % 4 === 0) { sheet = document.createElement('div'); sheet.className = 'ecb-sheet'; root.appendChild(sheet); }
-        sheet!.appendChild(l.cloneNode(true));
-      });
-      document.body.appendChild(root);
-      document.body.classList.add('printing-label');
-      const done = () => { document.body.classList.remove('printing-label'); root.remove(); };
-      window.addEventListener('afterprint', done, { once: true });
-      window.print();
-    }, 150);
+    setTimeout(() => this.sheet()?.print(), 150);
   }
 
-  /** One label per package (at least one). */
-  protected labelCount(b: BookingDetail): number { return Math.max(1, Math.min(999, Number(b.parcel?.packageCount ?? 1) || 1)); }
-  protected labelNumbers(b: BookingDetail): number[] { return Array.from({ length: this.labelCount(b) }, (_, i) => i + 1); }
 
   protected shortId(id: string): string { return id.slice(-8).toUpperCase(); }
 

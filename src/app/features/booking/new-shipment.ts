@@ -5,6 +5,7 @@ import { BookingDraftService, ShipmentDraft } from './booking-draft.service';
 import { PartyFields } from './party-fields';
 import { BookingSteps } from './booking-steps';
 import { BannerChip, RouteBanner } from './route-banner';
+import { PhotoPicker } from './photo-picker';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -19,7 +20,7 @@ import { differentAddresses, mobileValidator, normaliseMobile, pincodeValidator,
 @Component({
   selector: 'ecb-new-shipment',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icon, ReactiveFormsModule, PartyFields, BookingSteps, RouteBanner],
+  imports: [Icon, ReactiveFormsModule, PartyFields, BookingSteps, RouteBanner, PhotoPicker],
   template: `
     <section class="page">
       <div class="page__head">
@@ -108,19 +109,25 @@ import { differentAddresses, mobileValidator, normaliseMobile, pincodeValidator,
             @if (bad('package.contents')) { <span class="error">Describe what is being shipped.</span> }
           </div>
 
+          <ecb-photo-picker />
+
           <div class="field">
             <span class="lbl">Payment mode <span class="req">*</span></span>
             <span class="pay" role="radiogroup" aria-label="Payment mode">
-              <button type="button" role="radio" [attr.aria-checked]="!cod()" [class.on]="!cod()" (click)="setMode('PREPAID')">
+              <button type="button" role="radio" [attr.aria-checked]="mode() === 'PREPAID'" [class.on]="mode() === 'PREPAID'" (click)="setMode('PREPAID')">
                 <span class="pay__ico"><ecb-icon name="account_balance_wallet" /></span>
-                <span><strong>Prepaid</strong><small>You pay now</small></span>
+                <span><strong>Prepaid</strong><small>Freight comes from your wallet when you book</small></span>
               </button>
-              <button type="button" role="radio" [attr.aria-checked]="cod()" [class.on]="cod()" (click)="setMode('COD')">
+              <button type="button" role="radio" [attr.aria-checked]="mode() === 'TOPAY'" [class.on]="mode() === 'TOPAY'" (click)="setMode('TOPAY')">
+                <span class="pay__ico"><ecb-icon name="sell" /></span>
+                <span><strong>To Pay</strong><small>The receiver pays the freight on delivery (OCCPL Network only)</small></span>
+              </button>
+              <button type="button" role="radio" [attr.aria-checked]="mode() === 'COD'" [class.on]="mode() === 'COD'" (click)="setMode('COD')">
                 <span class="pay__ico"><ecb-icon name="payments" /></span>
-                <span><strong>Cash on delivery</strong><small>The receiver pays on delivery</small></span>
+                <span><strong>Cash on delivery</strong><small>The receiver pays the shipment value on delivery</small></span>
               </button>
             </span>
-            <span class="hint">COD is offered only by couriers that support it.</span>
+            <span class="hint">COD is offered only by couriers that support it. To Pay is offered by OCCPL Network only.</span>
           </div>
         </fieldset>
 
@@ -158,7 +165,7 @@ import { differentAddresses, mobileValidator, normaliseMobile, pincodeValidator,
     .seg { display:inline-flex; width:max-content; padding:3px; border-radius:999px; background:var(--surface); border:1px solid var(--surface-border); }
     .seg button { border:0; background:transparent; padding:.45rem 1rem; border-radius:999px; font:700 .85rem var(--font-sans); color:var(--content-muted); cursor:pointer; }
     .seg button.on { background:var(--occpl-gradient-button); color:#fff; box-shadow:0 4px 12px rgb(214 31 69 / 25%); }
-    .pay { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; }
+    .pay { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; }
     .pay button { display:flex; align-items:center; gap:14px; text-align:left; padding:14px 16px; border-radius:var(--r-card); border:2px solid var(--surface-border); background:var(--surface); cursor:pointer; transition:border-color .15s, box-shadow .15s, transform .15s; color:var(--content-fg); }
     .pay button:hover { transform:translateY(-1px); box-shadow:var(--shadow-sm); }
     .pay button.on { border-color:var(--occpl-color-primary); box-shadow:0 0 0 4px var(--occpl-color-info-surface); }
@@ -171,6 +178,7 @@ import { differentAddresses, mobileValidator, normaliseMobile, pincodeValidator,
     .actions { display:flex; justify-content:flex-end; gap:12px; flex-wrap:wrap; }
     .btn--cta { padding-inline:2rem; font-size:1.05rem; box-shadow:0 10px 24px rgb(214 31 69 / 30%); }
     @media (max-width: 760px) { .grid-3 { grid-template-columns:1fr; } .dims { grid-template-columns:1fr; justify-items:center; } .dims__fields { width:100%; } .pay { grid-template-columns:1fr; } }
+    @media (max-width: 1100px) and (min-width: 761px) { .pay { grid-template-columns:1fr; } }
     @media (max-width: 560px) { .actions .btn { flex:1; } }
   `]
 })
@@ -197,13 +205,15 @@ export class NewShipment implements OnInit {
       packageCount: this.fb.control<number | null>(1, [Validators.required, wholeNumber(1, 999)]),
       contents: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(200)]),
       declaredValue: this.fb.control<number | null>(null, [Validators.required, positiveNumber(10_000_000, 2)]),
-      paymentMode: this.fb.nonNullable.control<'PREPAID' | 'COD'>('PREPAID')
+      paymentMode: this.fb.nonNullable.control<'PREPAID' | 'COD' | 'TOPAY'>('PREPAID')
     })
   }, { validators: differentAddresses });
 
   /** The form as it is being filled in, for the route banner and the volumetric hint. */
   protected readonly v = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
   protected readonly cod = computed(() => this.v().package?.paymentMode === 'COD');
+  protected readonly topay = computed(() => this.v().package?.paymentMode === 'TOPAY');
+  protected readonly mode = computed(() => this.v().package?.paymentMode ?? 'PREPAID');
 
   protected readonly chips = computed<BannerChip[]>(() => {
     const p = this.v().package;
@@ -212,7 +222,7 @@ export class NewShipment implements OnInit {
     if (p?.packageCount) out.push({ icon: 'inventory_2', text: `${p.packageCount} package${Number(p.packageCount) === 1 ? '' : 's'}` });
     const vol = this.volumetric();
     if (vol) out.push({ icon: 'straighten', text: `${vol} kg volumetric` });
-    out.push({ icon: this.cod() ? 'payments' : 'account_balance_wallet', text: this.cod() ? 'Cash on delivery' : 'Prepaid' });
+    out.push(this.cod() ? { icon: 'payments', text: 'Cash on delivery' } : this.topay() ? { icon: 'sell', text: 'To Pay' } : { icon: 'account_balance_wallet', text: 'Prepaid' });
     return out;
   });
 
@@ -234,7 +244,7 @@ export class NewShipment implements OnInit {
     c.setValue(Math.max(1, Math.min(999, Number(c.value ?? 1) + by)));
     c.markAsDirty();
   }
-  protected setMode(m: 'PREPAID' | 'COD'): void { this.form.controls.package.controls.paymentMode.setValue(m); }
+  protected setMode(m: 'PREPAID' | 'COD' | 'TOPAY'): void { this.form.controls.package.controls.paymentMode.setValue(m); }
   protected setUnit(u: 'CM' | 'IN'): void { this.form.controls.package.controls.dimensionUnit.setValue(u); }
 
   constructor() {
