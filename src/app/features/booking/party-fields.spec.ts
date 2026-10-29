@@ -40,20 +40,20 @@ describe('PartyFields pincode autofill', () => {
     expect(group.value.state).toBe('Maharashtra');
   });
 
-  it('replaces a value it filled itself when the pincode changes', () => {
+  it('replaces the city and state when the pincode changes, even over an earlier value', () => {
     const { group, lookup } = setup();
-    lookup('411016', info('411016', 'Pune City', 'Maharashtra'));
+    group.patchValue({ city: 'Old city', state: 'Old state' });
     lookup('110001', info('110001', 'New Delhi', 'Delhi'));
     expect(group.value.city).toBe('New Delhi');
     expect(group.value.state).toBe('Delhi');
   });
 
-  it('keeps what the person typed', () => {
+  it('keeps what the person typed until the pincode changes again', () => {
     const { group, lookup } = setup();
     lookup('411016', info('411016', 'Pune City', 'Maharashtra'));
     group.get('city')!.setValue('Pimpri');
-    lookup('110001', info('110001', 'New Delhi', 'Delhi'));
     expect(group.value.city).toBe('Pimpri');
-    expect(group.value.state).toBe('Delhi');
+    lookup('110001', info('110001', 'New Delhi', 'Delhi'));
+    expect(group.value.city).toBe('New Delhi');
   });
 });
