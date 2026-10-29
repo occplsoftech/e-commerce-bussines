@@ -110,10 +110,11 @@ import { CourierLogo } from '@shared/components/courier-logo';
           @if (showLabel() && b.status !== 'FAILED') {
             <section class="labelbox">
               <div class="labelbox__bar">
-                <div><strong>Shipping label</strong><span class="text-caption"> 100 × 150 mm. Stick it on the parcel.</span></div>
-                <button class="btn btn--primary" type="button" (click)="printLabel()"><ecb-icon name="print" /> Print</button>
+                <div><strong>{{ labelCount(b) > 1 ? labelCount(b) + ' shipping labels' : 'Shipping label' }}</strong>
+                  <span class="text-caption"> 100 × 150 mm. {{ labelCount(b) > 1 ? 'One for each package; stick each on its own box.' : 'Stick it on the parcel.' }}</span></div>
+                <button class="btn btn--primary" type="button" (click)="printLabel()"><ecb-icon name="print" /> Print{{ labelCount(b) > 1 ? ' all ' + labelCount(b) : '' }}</button>
               </div>
-              <ecb-shipping-label [booking]="b" />
+              @for (n of labelNumbers(b); track n) { <ecb-shipping-label [booking]="b" [index]="n" [total]="labelCount(b)" /> }
             </section>
           }
         </div>
@@ -187,6 +188,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
     .labelbox { display:flex; flex-direction:column; align-items:center; gap:14px; padding:18px; border:1px dashed var(--surface-border); border-radius:var(--r-card); background:var(--occpl-color-neutral-surface); }
     .labelbox__bar { width:100%; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
     .labelbox ecb-shipping-label { box-shadow:var(--shadow-md); max-width:100%; overflow-x:auto; }
+    .labelbox { max-height:none; }
     @media (prefers-reduced-motion: reduce) { .check circle, .check path { animation:none; stroke-dashoffset:0; } .burst { display:none; } .track .now .n { animation:none; } }
     @media (max-width: 760px) {
       .waybill { grid-template-columns:1fr; }
@@ -221,13 +223,22 @@ export class BookingResult implements OnInit {
   /** Shows the label, then prints just that (the page's own print rule hides everything else while body has `printing-label`). */
   printLabel(): void {
     this.showLabel.set(true);
-    const done = () => document.body.classList.remove('printing-label');
     setTimeout(() => {
+      // copies of the labels go into their own container on the body, so the print rule can hide the whole app and give each label a page
+      const root = document.createElement('div');
+      root.id = 'ecb-print-root';
+      document.querySelectorAll('.labelbox .ecb-label').forEach((l) => root.appendChild(l.cloneNode(true)));
+      document.body.appendChild(root);
       document.body.classList.add('printing-label');
+      const done = () => { document.body.classList.remove('printing-label'); root.remove(); };
       window.addEventListener('afterprint', done, { once: true });
       window.print();
     }, 150);
   }
+
+  /** One label per package (at least one). */
+  protected labelCount(b: BookingDetail): number { return Math.max(1, Math.min(999, Number(b.parcel?.packageCount ?? 1) || 1)); }
+  protected labelNumbers(b: BookingDetail): number[] { return Array.from({ length: this.labelCount(b) }, (_, i) => i + 1); }
 
   protected shortId(id: string): string { return id.slice(-8).toUpperCase(); }
 

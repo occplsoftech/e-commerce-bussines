@@ -10,10 +10,11 @@ import { code128B } from '@shared/utils/code128';
   imports: [DatePipe],
   template: `
     @let b = booking();
-    <div class="ecb-label" role="document" [attr.aria-label]="'Shipping label ' + code()">
+    <div class="ecb-label" role="document" [attr.aria-label]="'Shipping label ' + code() + (total() > 1 ? ', package ' + index() + ' of ' + total() : '')">
       <header class="l-head">
         <strong>OCCPL SOFTECH</strong>
         <span>{{ b.providerName }}{{ b.serviceName ? ' · ' + b.serviceName : '' }}</span>
+        @if (total() > 1) { <em class="l-pkg">{{ index() }} / {{ total() }}</em> }
       </header>
 
       <section class="l-to">
@@ -32,8 +33,8 @@ import { code128B } from '@shared/utils/code128';
       </section>
 
       <section class="l-grid">
-        <div><span class="l-k">Weight</span><strong>{{ b.parcel?.chargeableWeightKg ?? b.parcel?.actualWeightKg ?? '—' }} kg</strong></div>
-        <div><span class="l-k">Packages</span><strong>{{ b.parcel?.packageCount ?? 1 }}</strong></div>
+        <div><span class="l-k">{{ total() > 1 ? 'Total weight' : 'Weight' }}</span><strong>{{ b.parcel?.chargeableWeightKg ?? b.parcel?.actualWeightKg ?? '—' }} kg</strong></div>
+        <div><span class="l-k">Packages</span><strong>{{ total() > 1 ? index() + ' of ' + total() : (b.parcel?.packageCount ?? 1) }}</strong></div>
         <div><span class="l-k">Payment</span><strong>{{ b.parcel?.paymentMode === 'COD' ? 'COD' : 'PREPAID' }}</strong></div>
         <div><span class="l-k">Booked</span><strong>{{ (b.bookedAt || b.createdAt) | date: 'dd MMM yyyy' }}</strong></div>
       </section>
@@ -51,9 +52,10 @@ import { code128B } from '@shared/utils/code128';
     :host { display:block; }
     .ecb-label { box-sizing:border-box; width:100mm; min-height:150mm; padding:4mm; background:#fff; color:#000; border:1.5px solid #000; display:flex; flex-direction:column; gap:2.5mm;
       font:400 9pt/1.3 Arial, Helvetica, sans-serif; }
-    .l-head { display:flex; justify-content:space-between; align-items:baseline; gap:3mm; padding-bottom:2mm; border-bottom:2px solid #000; }
-    .l-head strong { font-size:12pt; letter-spacing:.04em; }
-    .l-head span { font-size:8pt; text-align:right; }
+    .l-head { display:flex; justify-content:space-between; align-items:center; gap:3mm; padding-bottom:2mm; border-bottom:2px solid #000; }
+    .l-head strong { font-size:11pt; letter-spacing:.03em; white-space:nowrap; }
+    .l-head span { font-size:7.5pt; text-align:right; margin-left:auto; min-width:0; }
+    .l-pkg { font:700 12pt Arial, sans-serif; font-style:normal; padding:.5mm 2.5mm; border:2px solid #000; border-radius:2mm; white-space:nowrap; flex:none; }
     .l-k { display:block; font-size:6.5pt; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#444; }
     .l-to { padding-bottom:2mm; border-bottom:1px dashed #000; }
     .l-name { font-size:13pt; font-weight:700; }
@@ -72,6 +74,9 @@ import { code128B } from '@shared/utils/code128';
 })
 export class ShippingLabel {
   readonly booking = input.required<BookingDetail>();
+  /** Which package of the shipment this label is for (1-based) and how many there are; every box gets its own label. */
+  readonly index = input(1);
+  readonly total = input(1);
 
   /** What the barcode carries: the tracking number once there is one, else the booking reference, else the booking id. */
   protected readonly code = computed(() => {
