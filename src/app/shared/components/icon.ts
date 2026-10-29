@@ -43,6 +43,15 @@ const PATHS: Record<string, string> = {
   chevron_left: 'M15 6l-6 6 6 6',
   chevron_right: 'M9 6l6 6-6 6',
   home: 'M4 11l8-7 8 7M6 9.5V20h12V9.5M10 20v-5h4v5',
+  flight: 'M12 3c.8 0 1.5.7 1.5 1.5V9l8 5v2.2l-8-2.2v4l2 1.5V21l-3.5-1-3.5 1v-1.5l2-1.5v-4l-8 2.2V14l8-5V4.5C10.5 3.7 11.2 3 12 3z',
+  content_copy: 'M8 8h11v12H8zM5 16V4h11',
+  payments: 'M3 7h18v10H3zM12 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM6 10v.01M18 14v.01',
+  scale: 'M12 4v16M5 20h14M6 7h12M6 7l-3 7a3 3 0 0 0 6 0zM18 7l-3 7a3 3 0 0 0 6 0z',
+  straighten: 'M3 8h18v8H3zM7 8v3M11 8v4M15 8v3M19 8v4',
+  sell: 'M3 12V4h8l9 9-8 8zM7.5 8h.01',
+  person: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0',
+  call: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2',
+  remove: 'M5 12h14',
   location_on: 'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5'
 };
 

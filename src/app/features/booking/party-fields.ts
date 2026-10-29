@@ -5,15 +5,19 @@ import { debounceTime, distinctUntilChanged, filter, switchMap, catchError, of }
 import { PortalService } from '@core/services/portal.service';
 import { PincodeInfo, PortalAddress } from '@core/models/portal.model';
 import { PINCODE } from './booking-validators';
+import { Icon } from '@shared/components/icon';
 
 /** Contact + address + pincode for pickup or delivery. A valid pincode fills the city and state and shows coverage. */
 @Component({
   selector: 'ecb-party-fields',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Icon],
   template: `
-    <fieldset class="app-card party" [formGroup]="group()">
-      <legend class="text-h2">{{ title() }}</legend>
+    <fieldset class="app-card party" [attr.aria-label]="title()" [class.party--to]="kind() === 'delivery'" [formGroup]="group()">
+      <div class="head">
+        <span class="chip"><ecb-icon [name]="kind() === 'delivery' ? 'home' : 'location_on'" /></span>
+        <span><strong>{{ title() }}</strong><small>{{ kind() === 'delivery' ? 'Where it is going' : 'Where we collect it' }}</small></span>
+      </div>
       @if (saved().length > 0) {
         <div class="field">
           <label [for]="id('saved')">Use a saved address</label>
@@ -73,8 +77,13 @@ import { PINCODE } from './booking-validators';
     </fieldset>
   `,
   styles: [`
-    .party { border:1px solid var(--surface-border); padding:20px 20px 24px; margin:0; display:flex; flex-direction:column; gap:14px; min-width:0; }
-    legend { margin-left:8px; padding:3px 14px; border-radius:999px; background:var(--occpl-color-info-surface); color:var(--occpl-color-accent); font:700 .8rem var(--font-sans) !important; letter-spacing:.06em; text-transform:uppercase; }
+    .party { --tone:var(--occpl-color-teal); border:1px solid var(--surface-border); border-top:4px solid var(--tone); padding:22px 22px 26px; margin:0; display:flex; flex-direction:column; gap:14px; min-width:0;
+      background:linear-gradient(180deg, color-mix(in srgb, var(--tone) 7%, var(--surface)) 0, var(--surface) 140px); }
+    .party--to { --tone:var(--occpl-color-accent); }
+    .head { display:flex; align-items:center; gap:12px; padding:0 8px; }
+    .head strong { display:block; font:700 1.1rem var(--font-display); }
+    .head small { display:block; font:400 .8rem var(--font-sans); color:var(--content-muted); }
+    .chip { display:grid; place-items:center; width:2.6rem; height:2.6rem; border-radius:14px; background:var(--tone); color:#fff; font-size:1.25rem; box-shadow:0 6px 16px color-mix(in srgb, var(--tone) 35%, transparent); }
     .coverage { display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:24px; }
   `]
 })
