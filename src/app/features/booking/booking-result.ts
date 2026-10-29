@@ -111,7 +111,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
             <section class="labelbox">
               <div class="labelbox__bar">
                 <div><strong>{{ labelCount(b) > 1 ? labelCount(b) + ' shipping labels' : 'Shipping label' }}</strong>
-                  <span class="text-caption"> 100 × 150 mm. {{ labelCount(b) > 1 ? 'One for each package; stick each on its own box.' : 'Stick it on the parcel.' }}</span></div>
+                  <span class="text-caption"> Prints on A4, four to a sheet. {{ labelCount(b) > 1 ? 'One for each package: cut along the dashed lines and stick each on its own box.' : 'Cut along the dashed lines and stick it on the parcel.' }}</span></div>
                 <button class="btn btn--primary" type="button" (click)="printLabel()"><ecb-icon name="print" /> Print{{ labelCount(b) > 1 ? ' all ' + labelCount(b) : '' }}</button>
               </div>
               @for (n of labelNumbers(b); track n) { <ecb-shipping-label [booking]="b" [index]="n" [total]="labelCount(b)" /> }
@@ -227,7 +227,11 @@ export class BookingResult implements OnInit {
       // copies of the labels go into their own container on the body, so the print rule can hide the whole app and give each label a page
       const root = document.createElement('div');
       root.id = 'ecb-print-root';
-      document.querySelectorAll('.labelbox .ecb-label').forEach((l) => root.appendChild(l.cloneNode(true)));
+      let sheet: HTMLElement | null = null;
+      document.querySelectorAll('.labelbox .ecb-label').forEach((l, i) => {
+        if (i % 4 === 0) { sheet = document.createElement('div'); sheet.className = 'ecb-sheet'; root.appendChild(sheet); }
+        sheet!.appendChild(l.cloneNode(true));
+      });
       document.body.appendChild(root);
       document.body.classList.add('printing-label');
       const done = () => { document.body.classList.remove('printing-label'); root.remove(); };
