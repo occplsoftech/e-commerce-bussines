@@ -112,23 +112,21 @@ export class PartyFields implements OnInit {
       this.checking.set(false);
       this.info.set(info);
       if (info?.known) {
-        this.autofill('city', info.city ?? info.district);
-        this.autofill('state', info.state);
+        this.autofill('city', info.city ?? info.district, info.pincode);
+        this.autofill('state', info.state, info.pincode);
       }
     });
   }
 
-  private readonly autoValue: Record<string, string> = {};
+  /** Pincode of a saved address just applied: its own city and state are kept rather than replaced by the master's. */
+  private savedPincode: string | null = null;
 
-  /** Fills a field from the pincode unless the person typed their own value (a field still holding the last auto-filled one is replaced). */
-  private autofill(field: 'city' | 'state', value: string | null | undefined): void {
+  /** The pincode decides the city and state, so a new pincode replaces them; with a saved address, only empty fields are filled. */
+  private autofill(field: 'city' | 'state', value: string | null | undefined, pin: string): void {
     const c = this.group().get(field);
     if (!c || !value) return;
-    const cur = (c.value ?? '').toString();
-    if (cur === '' || cur === this.autoValue[field]) {
-      c.setValue(value);
-      this.autoValue[field] = value;
-    }
+    if (pin === this.savedPincode && (c.value ?? '').toString() !== '') return;
+    c.setValue(value);
   }
 
   constructor() {
@@ -149,6 +147,7 @@ export class PartyFields implements OnInit {
   /** Fills address, pincode and city; name, phone and state stay as typed. */
   private apply(a: PortalAddress): void {
     const address = [a.addressLine1, a.addressLine2, a.landmark ? 'Near ' + a.landmark : null].filter((x) => !!x).join(', ');
+    this.savedPincode = a.pincode ?? null;
     this.group().patchValue({ address: address.slice(0, 300), pincode: a.pincode ?? '', city: a.city ?? this.group().get('city')!.value });
     this.group().markAsDirty();
   }
