@@ -6,6 +6,7 @@ import { PortalService } from '@core/services/portal.service';
 import { BookingDetail } from '@core/models/portal.model';
 import { BookingDraftService } from './booking-draft.service';
 import { BookingSteps } from './booking-steps';
+import { ShippingLabel } from './shipping-label';
 
 /** Step 5: what happened — booked, failed (nothing booked) or awaiting confirmation with the courier. */
 import { CourierLogo } from '@shared/components/courier-logo';
@@ -13,7 +14,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
 @Component({
   selector: 'ecb-booking-result',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, BookingSteps],
+  imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, BookingSteps, ShippingLabel],
   template: `
     <section class="page">
       <ecb-booking-steps [current]="3" />
@@ -100,10 +101,21 @@ import { CourierLogo } from '@shared/components/courier-logo';
               <a class="btn btn--ghost" routerLink="/dashboard">Go to dashboard</a>
               <a class="btn btn--primary btn--cta" [routerLink]="['/book/rates', b.quoteId]">Choose another courier</a>
             } @else {
+              <button class="btn btn--ghost" type="button" (click)="printLabel()"><ecb-icon name="print" /> Print label</button>
               <a class="btn btn--ghost" [routerLink]="['/shipments', b.bookingId]"><ecb-icon name="visibility" /> {{ b.labelDownloadable ? 'View shipment and label' : 'View shipment' }}</a>
               <a class="btn btn--primary btn--cta" routerLink="/book" (click)="startNew()">Book another shipment <ecb-icon name="arrow_forward" /></a>
             }
           </div>
+
+          @if (showLabel() && b.status !== 'FAILED') {
+            <section class="labelbox">
+              <div class="labelbox__bar">
+                <div><strong>Shipping label</strong><span class="text-caption"> 100 × 150 mm. Stick it on the parcel.</span></div>
+                <button class="btn btn--primary" type="button" (click)="printLabel()"><ecb-icon name="print" /> Print</button>
+              </div>
+              <ecb-shipping-label [booking]="b" />
+            </section>
+          }
         </div>
       } @else if (!error()) {
         <p class="text-caption">Loading…</p>
@@ -172,6 +184,9 @@ import { CourierLogo } from '@shared/components/courier-logo';
     .actions { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
     .btn--cta { padding-inline:2rem; box-shadow:0 10px 24px rgb(214 31 69 / 30%); }
 
+    .labelbox { display:flex; flex-direction:column; align-items:center; gap:14px; padding:18px; border:1px dashed var(--surface-border); border-radius:var(--r-card); background:var(--occpl-color-neutral-surface); }
+    .labelbox__bar { width:100%; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+    .labelbox ecb-shipping-label { box-shadow:var(--shadow-md); max-width:100%; overflow-x:auto; }
     @media (prefers-reduced-motion: reduce) { .check circle, .check path { animation:none; stroke-dashoffset:0; } .burst { display:none; } .track .now .n { animation:none; } }
     @media (max-width: 760px) {
       .waybill { grid-template-columns:1fr; }
@@ -201,6 +216,18 @@ export class BookingResult implements OnInit {
   startNew(): void { this.drafts.clear(); }
 
   readonly copied = signal(false);
+  readonly showLabel = signal(false);
+
+  /** Shows the label, then prints just that (the page's own print rule hides everything else while body has `printing-label`). */
+  printLabel(): void {
+    this.showLabel.set(true);
+    const done = () => document.body.classList.remove('printing-label');
+    setTimeout(() => {
+      document.body.classList.add('printing-label');
+      window.addEventListener('afterprint', done, { once: true });
+      window.print();
+    }, 150);
+  }
 
   protected shortId(id: string): string { return id.slice(-8).toUpperCase(); }
 
