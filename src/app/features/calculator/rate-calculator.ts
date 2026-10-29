@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { InternationalRates } from './international-rates';
 import { catchError, debounceTime, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Icon } from '@shared/components/icon';
@@ -16,13 +17,14 @@ import { pincodeValidator, positiveNumber, wholeNumber } from '@features/booking
 type Lookup = { state: 'idle' } | { state: 'loading' } | { state: 'ok'; text: string } | { state: 'bad'; text: string };
 
 /**
- * Rate calculator: two pincodes and a package give every courier's price at a glance — the quick check before booking.
+ * Rate calculator: two pincodes and a package give every courier's price at a glance — the quick check before booking. The
+ * International tab prices shipments abroad (sKart).
  * "Book" carries the pincodes and package into the booking form, which asks for the addresses.
  */
 @Component({
   selector: 'ecb-rate-calculator',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icon, CourierLogo, ReactiveFormsModule, RouterLink, CurrencyPipe, DecimalPipe, TransportModePipe],
+  imports: [Icon, CourierLogo, ReactiveFormsModule, RouterLink, CurrencyPipe, DecimalPipe, TransportModePipe, InternationalRates],
   template: `
     <section class="calc">
       <header class="calc__title">
@@ -33,6 +35,17 @@ type Lookup = { state: 'idle' } | { state: 'loading' } | { state: 'ok'; text: st
         </div>
         <a class="calc__link" routerLink="/book"><ecb-icon name="bolt" /> Shipment booking</a>
       </header>
+
+      <div class="scope" role="tablist" aria-label="Where to">
+        <button type="button" role="tab" class="scope__tab" [class.scope__tab--on]="scope() === 'domestic'"
+                [attr.aria-selected]="scope() === 'domestic'" (click)="setScope('domestic')">Domestic</button>
+        <button type="button" role="tab" class="scope__tab" [class.scope__tab--on]="scope() === 'international'"
+                [attr.aria-selected]="scope() === 'international'" (click)="setScope('international')">International</button>
+      </div>
+
+      @if (scope() === 'international') {
+        <ecb-international-rates />
+      } @else {
 
       <form class="bar" [formGroup]="form" (ngSubmit)="check()" novalidate>
         <div class="bar__row">
@@ -136,6 +149,7 @@ type Lookup = { state: 'idle' } | { state: 'loading' } | { state: 'ok'; text: st
           <p class="hint">Not available: @for (u of quote()!.unavailable; track u.providerCode; let last = $last) { <strong>{{ u.providerName }}</strong>{{ last ? '' : ', ' }} }</p>
         }
       }
+      }
     </section>
   `,
   styles: [`
@@ -146,6 +160,9 @@ type Lookup = { state: 'idle' } | { state: 'loading' } | { state: 'ok'; text: st
     .calc__title p { margin:2px 0 0; color:var(--content-muted); }
     .calc__badge { display:grid; place-items:center; width:3rem; height:3rem; border-radius:16px; background:var(--occpl-gradient-brand); color:#fff; font-size:1.4rem; }
     .calc__link { margin-left:auto; display:inline-flex; align-items:center; gap:8px; font:700 .85rem var(--font-sans); letter-spacing:.08em; text-transform:uppercase; text-decoration:none; }
+    .scope { display:inline-flex; align-self:flex-start; gap:4px; padding:4px; border-radius:16px; background:var(--occpl-color-neutral-surface); }
+    .scope__tab { min-height:2.5rem; padding:0 22px; border:0; border-radius:12px; background:transparent; color:var(--content-muted); font:800 .85rem var(--font-sans); letter-spacing:.08em; text-transform:uppercase; cursor:pointer; }
+    .scope__tab--on { background:var(--occpl-color-surface); color:var(--occpl-color-primary); box-shadow:var(--occpl-shadow-sm); }
     .bar { background:var(--occpl-color-surface); border:1px solid var(--surface-border); border-top:5px solid var(--occpl-color-primary); border-radius:24px; padding:18px 20px; box-shadow:var(--occpl-shadow-md); display:flex; flex-direction:column; gap:12px; }
     .bar__row { display:grid; grid-template-columns:1.3fr 1.3fr .6fr .8fr .9fr auto; gap:12px; align-items:start; }
     .f { display:flex; flex-direction:column; gap:6px; min-width:0; }
@@ -195,6 +212,11 @@ export class RateCalculator {
   private readonly portal = inject(PortalService);
   private readonly router = inject(Router);
   private readonly drafts = inject(BookingDraftService);
+  private readonly route = inject(ActivatedRoute);
+
+  /** Domestic (Indian pincodes) or international (sKart); kept in the address as ?scope=international. */
+  readonly scope = signal<'domestic' | 'international'>(
+    this.route.snapshot.queryParamMap.get('scope') === 'international' ? 'international' : 'domestic');
 
   readonly dims = signal(false);
   readonly cod = signal(false);
@@ -281,6 +303,11 @@ export class RateCalculator {
           ? (e.error?.message ?? 'Please check the details.') : 'Rates could not be checked right now. Please try again.');
       }
     });
+  }
+
+  setScope(scope: 'domestic' | 'international'): void {
+    this.scope.set(scope);
+    this.router.navigate([], { queryParams: { scope: scope === 'international' ? 'international' : null }, replaceUrl: true });
   }
 
   /** Carries the pincodes and package into the booking form, which asks for the addresses. */
