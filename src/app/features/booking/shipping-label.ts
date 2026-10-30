@@ -35,7 +35,7 @@ import { code128B } from '@shared/utils/code128';
       <section class="l-grid">
         <div><span class="l-k">{{ total() > 1 ? 'Total weight' : 'Weight' }}</span><strong>{{ b.parcel?.chargeableWeightKg ?? b.parcel?.actualWeightKg ?? '—' }} kg</strong></div>
         <div><span class="l-k">Packages</span><strong>{{ total() > 1 ? index() + ' of ' + total() : (b.parcel?.packageCount ?? 1) }}</strong></div>
-        <div><span class="l-k">Payment</span><strong>{{ b.parcel?.paymentMode === 'COD' ? 'COD' : 'PREPAID' }}</strong></div>
+        <div><span class="l-k">Payment</span><strong>{{ b.parcel?.paymentMode === 'COD' ? 'COD' : b.parcel?.paymentMode === 'TOPAY' ? 'TO PAY' : 'PREPAID' }}</strong></div>
         <div><span class="l-k">Booked</span><strong>{{ (b.bookedAt || b.createdAt) | date: 'dd MMM yyyy' }}</strong></div>
       </section>
 

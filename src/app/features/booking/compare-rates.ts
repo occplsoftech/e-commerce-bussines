@@ -229,7 +229,7 @@ export class CompareRates implements OnInit {
   chips(q: RateQuote): BannerChip[] {
     const out: BannerChip[] = [{ icon: 'scale', text: `${q.actualWeightKg} kg` }, { icon: 'inventory_2', text: `${q.packageCount} package${q.packageCount === 1 ? '' : 's'}` }];
     if (q.volumetricWeightKg) out.push({ icon: 'straighten', text: `${q.volumetricWeightKg} kg volumetric` });
-    out.push(q.paymentMode === 'COD' ? { icon: 'payments', text: 'Cash on delivery' } : { icon: 'account_balance_wallet', text: 'Prepaid' });
+    out.push(q.paymentMode === 'COD' ? { icon: 'payments', text: 'Cash on delivery' } : q.paymentMode === 'TOPAY' ? { icon: 'sell', text: 'To Pay' } : { icon: 'account_balance_wallet', text: 'Prepaid' });
     return out;
   }
 

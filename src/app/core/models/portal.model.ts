@@ -291,7 +291,7 @@ export interface EstimateRequest {
   breadth: number | null;
   height: number | null;
   dimensionUnit: 'CM' | 'IN';
-  paymentMode: 'PREPAID' | 'COD';
+  paymentMode: 'PREPAID' | 'COD' | 'TOPAY';
 }
 
 /** A customer this customer registered (the server records the registering customer as its parent). */
@@ -318,3 +318,6 @@ export interface SubCustomerRequest {
   contactPerson: string | null;
   expectedVersion: number | null;
 }
+
+/** A photo of the parcel, or a document, attached to a booking. */
+export interface BookingPhoto { id: string; kind: 'PARCEL' | 'DOCUMENT'; fileName: string; contentType: string; sizeBytes: number; uploadedAt: string; }

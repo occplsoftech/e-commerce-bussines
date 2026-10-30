@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { API } from '../config/api-endpoints';
 import {
-  AddressRequest, EstimateRequest, InternationalCountry, InternationalEstimateRequest, SubCustomer, SubCustomerRequest, Booking, BookingDetail, BookingFilter, BookingSummary, Page, PincodeInfo, PortalAddress,
+  AddressRequest, EstimateRequest, InternationalCountry, InternationalEstimateRequest, SubCustomer, SubCustomerRequest, Booking, BookingDetail, BookingPhoto, BookingFilter, BookingSummary, Page, PincodeInfo, PortalAddress,
   PortalDashboard, PortalProfile, RateQuote, ShipmentTracking, TrackingView
 } from '../models/portal.model';
 import { ShipmentDraft } from '@features/booking/booking-draft.service';
@@ -58,6 +58,16 @@ export class PortalService {
 
   /** Asked of the courier on every call; the server limits how often. */
   tracking(bookingId: string): Observable<TrackingView> { return this.api.get<TrackingView>(API.portal.bookingTracking(bookingId)); }
+
+  photos(bookingId: string): Observable<BookingPhoto[]> { return this.api.get<BookingPhoto[]>(API.portal.bookingPhotos(bookingId)); }
+  uploadPhoto(bookingId: string, file: File, kind: 'PARCEL' | 'DOCUMENT' = 'PARCEL'): Observable<BookingPhoto> {
+    const body = new FormData();
+    body.append('file', file);
+    body.append('kind', kind);
+    return this.api.post<BookingPhoto>(API.portal.bookingPhotos(bookingId), body);
+  }
+  photoFile(bookingId: string, photoId: string): Observable<Blob> { return this.api.blob(API.portal.bookingPhoto(bookingId, photoId) + '/file'); }
+  deletePhoto(bookingId: string, photoId: string): Observable<void> { return this.api.delete(API.portal.bookingPhoto(bookingId, photoId)); }
 
   label(bookingId: string): Observable<Blob> { return this.api.blob(API.portal.bookingLabel(bookingId)); }
 

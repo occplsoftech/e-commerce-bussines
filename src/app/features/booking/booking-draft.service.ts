@@ -18,7 +18,7 @@ export interface PackageDetails {
   packageCount: number | null;
   contents: string;
   declaredValue: number | null;
-  paymentMode: 'PREPAID' | 'COD';
+  paymentMode: 'PREPAID' | 'COD' | 'TOPAY';
 }
 
 export interface ShipmentDraft {

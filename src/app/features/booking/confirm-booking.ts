@@ -6,6 +6,7 @@ import { PortalService } from '@core/services/portal.service';
 import { RateOption, RateQuote } from '@core/models/portal.model';
 import { BookingDraftService } from './booking-draft.service';
 import { BookingSteps } from './booking-steps';
+import { PaymentIconPipe, PaymentLabelPipe } from './payment-mode.pipe';
 import { RouteBanner } from './route-banner';
 import { Icon } from '@shared/components/icon';
 
@@ -21,7 +22,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
 @Component({
   selector: 'ecb-confirm-booking',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, DecimalPipe, BookingSteps, RouteBanner],
+  imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, DecimalPipe, BookingSteps, RouteBanner, PaymentLabelPipe, PaymentIconPipe],
   template: `
     <section class="page">
       <div class="page__head">
@@ -80,7 +81,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
                 <li><ecb-icon name="scale" /> {{ d.package.actualWeightKg | number: '1.0-3' }} kg</li>
                 <li><ecb-icon name="description" /> {{ d.package.contents }}</li>
                 <li><ecb-icon name="sell" /> {{ d.package.declaredValue | currency: 'INR' : 'symbol' : '1.2-2' }}</li>
-                <li><ecb-icon [name]="d.package.paymentMode === 'COD' ? 'payments' : 'account_balance_wallet'" /> {{ d.package.paymentMode === 'COD' ? 'Cash on delivery' : 'Prepaid' }}</li>
+                <li><ecb-icon [name]="d.package.paymentMode | paymentIcon" /> {{ d.package.paymentMode | paymentLabel }}</li>
               </ul>
             } @else {
               <p class="text-caption">Pincodes {{ quote()?.pickupPincode }} → {{ quote()?.deliveryPincode }}, {{ quote()?.packageCount }} package(s).</p>
@@ -88,6 +89,12 @@ import { CourierLogo } from '@shared/components/courier-logo';
           </article>
         </div>
 
+ @if (draft(); as dd) {
+          <p class="paynote" [class.paynote--topay]="dd.package.paymentMode === 'TOPAY'">
+            @if (dd.package.paymentMode === 'TOPAY') { <ecb-icon name="sell" /> To Pay: nothing is taken from your wallet. The receiver pays {{ o.totalAmount | currency: o.currency : 'symbol' : '1.2-2' }} on delivery. }
+            @else { <ecb-icon name="account_balance_wallet" /> {{ o.totalAmount | currency: o.currency : 'symbol' : '1.2-2' }} is taken from your wallet when you book. Credit accounts are billed on their invoice instead. }
+          </p>
+        }
         <label class="agree" [class.on]="agreed()"><input type="checkbox" [checked]="agreed()" (change)="agreed.set($any($event.target).checked)" />
           <span>I confirm the details are correct and the contents are allowed for shipping.</span></label>
         <ul class="trust">
@@ -131,6 +138,8 @@ import { CourierLogo } from '@shared/components/courier-logo';
     .adr { font:400 .9rem/1.5 var(--font-sans); overflow-wrap:anywhere; }
     .facts { list-style:none; margin:0; padding:14px 0 0; border-top:1px solid var(--surface-border); display:flex; flex-wrap:wrap; gap:8px; }
     .facts li { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; background:var(--occpl-color-neutral-surface); font:600 .82rem var(--font-sans); }
+    .paynote { margin:0; display:flex; gap:10px; align-items:center; padding:12px 16px; border-radius:var(--r-card); background:var(--occpl-color-info-surface); color:var(--occpl-color-accent); font:500 .88rem/1.4 var(--font-sans); }
+    .paynote--topay { background:var(--warning-bg, #fff4e0); color:var(--warning); }
     .agree { display:flex; gap:12px; align-items:flex-start; padding:14px 16px; border:2px solid var(--surface-border); border-radius:var(--r-card); font:500 14px var(--font-sans); cursor:pointer; background:var(--surface); transition:border-color .15s, background .15s; }
     .agree.on { border-color:var(--success); background:var(--success-bg, #e3f6ec); }
     .agree input { margin-top:3px; accent-color:var(--occpl-color-primary); width:1.1rem; height:1.1rem; }

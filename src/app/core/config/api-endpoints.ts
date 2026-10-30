@@ -23,6 +23,8 @@ export const API = {
     bookingCouriers: '/customer-portal/bookings/couriers',
     booking: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}`,
     bookingTracking: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/tracking`,
+    bookingPhotos: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/photos`,
+    bookingPhoto: (id: string, photoId: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/photos/${encodeURIComponent(photoId)}`,
     bookingLabel: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/label`,
     shipmentTracking: (id: string) => `/customer-portal/shipments/${encodeURIComponent(id)}/tracking`,
     courierLogos: '/customer-portal/courier-logos',
