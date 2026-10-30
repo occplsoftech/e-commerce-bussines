@@ -1,0 +1,193 @@
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { NotificationService } from '@core/services/notification.service';
+import { Icon } from '@shared/components/icon';
+import { errorMessage, saveBlob } from '@shared/utils/http-error';
+import { BulkBookingService, BulkItem, BulkPreview, BulkResult, BulkRow } from './bulk-booking.service';
+
+const XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const MAX_BYTES = 5 * 1024 * 1024;
+
+/**
+ * Book many shipments from one Excel sheet: download the template, upload it, see every row checked and priced (the customer's own
+ * business rate where there is one, otherwise the cheapest courier allowed), tick what to book, confirm. Nothing is booked before the
+ * confirm; rows then book independently, with the same wallet / To Pay / credit rules as a single booking.
+ */
+@Component({
+  selector: 'ecb-bulk-booking',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [Icon, CurrencyPipe, RouterLink],
+  template: `
+    <section class="page">
+      <div class="page__head">
+        <div>
+          <h1 class="text-display">Bulk booking</h1>
+          <p class="text-caption">Upload an Excel sheet with one row per shipment. You see every row checked and priced before anything is booked.</p>
+        </div>
+        <button type="button" class="btn btn--ghost" (click)="downloadTemplate()"><ecb-icon name="download" /> Download template</button>
+      </div>
+
+      @if (error()) { <p class="alert alert--error" role="alert">{{ error() }}</p> }
+
+      @if (!results()) {
+        <article class="app-card drop">
+          <ecb-icon name="upload" />
+          <p><strong>Choose your filled .xlsx file</strong></p>
+          <p class="text-caption">Up to 100 shipments. Use the template as it is: do not rename or remove its columns.</p>
+          <input #f type="file" [accept]="accept" hidden (change)="pick(f.files)" />
+          <button type="button" class="btn btn--primary" [disabled]="busy()" (click)="f.click()">{{ busy() ? 'Checking…' : (preview() ? 'Choose another file' : 'Choose file') }}</button>
+        </article>
+      }
+
+      @if (preview(); as p) {
+        @if (!results()) {
+          <article class="app-card">
+            <div class="sum">
+              <span><strong>{{ p.okCount }}</strong> ready</span>
+              <span [class.bad]="p.errorCount > 0"><strong>{{ p.errorCount }}</strong> with errors</span>
+              <span>Selected total <strong class="num-tabular">{{ selectedTotal() | currency: 'INR' : 'symbol' : '1.2-2' }}</strong></span>
+            </div>
+            <div class="scroll">
+              <table>
+                <thead><tr><th></th><th>Row</th><th>To</th><th>Pincode</th><th>Weight</th><th>Payment</th><th>Courier</th><th>Priced at</th><th class="r">Total</th></tr></thead>
+                <tbody>
+                  @for (r of p.rows; track r.row) {
+                    <tr [class.err]="!r.ok">
+                      <td>@if (r.ok) { <input type="checkbox" [checked]="picked().has(r.row)" (change)="toggle(r.row)" [attr.aria-label]="'Book row ' + r.row" /> }</td>
+                      <td>{{ r.row }}</td>
+                      <td>{{ r.deliveryName || '—' }}</td>
+                      <td>{{ r.deliveryPincode || '—' }}</td>
+                      <td>{{ r.weightKg ?? '—' }}</td>
+                      <td>{{ r.paymentMode }}</td>
+                      @if (r.ok) {
+                        <td>{{ r.providerName }} · {{ r.serviceName }}</td>
+                        <td>{{ r.basis === 'BUSINESS_RATE' ? 'Your business rate' : 'Cheapest courier' }}</td>
+                        <td class="r num-tabular">{{ r.total | currency: 'INR' : 'symbol' : '1.2-2' }}</td>
+                      } @else {
+                        <td colspan="3" class="msg">{{ r.error }}</td>
+                      }
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            @if (p.errorCount > 0) { <p class="alert alert--warn">Fix the rows with errors in your sheet and upload it again, or book only the ready rows.</p> }
+            <div class="actions">
+              <button type="button" class="btn btn--primary" [disabled]="busy() || picked().size === 0" (click)="confirm()">
+                {{ busy() ? 'Booking…' : 'Book ' + picked().size + ' shipment' + (picked().size === 1 ? '' : 's') }}
+              </button>
+            </div>
+          </article>
+        }
+      }
+
+      @if (results(); as rs) {
+        <article class="app-card">
+          <div class="sum">
+            <span><strong>{{ bookedCount() }}</strong> booked</span>
+            <span [class.bad]="rs.length - bookedCount() > 0"><strong>{{ rs.length - bookedCount() }}</strong> not booked</span>
+          </div>
+          <div class="scroll">
+            <table>
+              <thead><tr><th>Row</th><th>Result</th><th>Tracking number</th><th>Reference</th></tr></thead>
+              <tbody>
+                @for (r of rs; track r.row) {
+                  <tr [class.err]="!r.booked">
+                    <td>{{ r.row }}</td>
+                    <td>{{ r.booked ? 'Booked' : r.message }}</td>
+                    <td>{{ r.awb || '—' }}</td>
+                    <td>{{ r.reference || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="actions">
+            <a class="btn btn--primary" routerLink="/shipments">View shipments</a>
+            <button type="button" class="btn btn--ghost" (click)="reset()">Upload another sheet</button>
+          </div>
+        </article>
+      }
+    </section>
+  `,
+  styles: [`
+    .drop { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 32px 16px; text-align: center; border-style: dashed; }
+    .drop p { margin: 0; }
+    .sum { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 12px; font: 400 14px var(--font-sans); }
+    .sum .bad { color: var(--danger); }
+    .scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font: 400 13px var(--font-sans); }
+    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--surface-border); white-space: nowrap; }
+    .r { text-align: right; }
+    tr.err td { background: var(--danger-bg); }
+    td.msg { white-space: normal; color: var(--danger); }
+    .actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+  `]
+})
+export class BulkBooking {
+  private readonly service = inject(BulkBookingService);
+  private readonly notify = inject(NotificationService);
+
+  protected readonly accept = `.xlsx,${XLSX}`;
+  protected readonly busy = signal(false);
+  protected readonly error = signal('');
+  protected readonly preview = signal<BulkPreview | null>(null);
+  protected readonly picked = signal<Set<number>>(new Set());
+  protected readonly results = signal<BulkResult[] | null>(null);
+
+  protected readonly selectedTotal = computed(() =>
+    (this.preview()?.rows ?? []).filter((r) => this.picked().has(r.row)).reduce((sum, r) => sum + (r.total ?? 0), 0));
+  protected readonly bookedCount = computed(() => (this.results() ?? []).filter((r) => r.booked).length);
+
+  protected downloadTemplate(): void {
+    this.service.template().subscribe({
+      next: (b) => saveBlob(b, 'bulk-booking-template.xlsx'),
+      error: (e) => void errorMessage(e, 'The template could not be downloaded.').then((m) => this.error.set(m))
+    });
+  }
+
+  protected pick(files: FileList | null): void {
+    const file = files?.[0];
+    if (!file) return;
+    this.error.set('');
+    if (!file.name.toLowerCase().endsWith('.xlsx')) { this.error.set('Choose an Excel (.xlsx) file.'); return; }
+    if (file.size > MAX_BYTES) { this.error.set('The file is larger than 5 MB.'); return; }
+    this.busy.set(true);
+    this.preview.set(null);
+    this.service.preview(file).subscribe({
+      next: (p) => {
+        this.preview.set(p);
+        this.picked.set(new Set(p.rows.filter((r) => r.ok).map((r) => r.row)));
+        this.busy.set(false);
+      },
+      error: (e) => { this.busy.set(false); void errorMessage(e, 'The file could not be checked.').then((m) => this.error.set(m)); }
+    });
+  }
+
+  protected toggle(row: number): void {
+    const next = new Set(this.picked());
+    if (!next.delete(row)) next.add(row);
+    this.picked.set(next);
+  }
+
+  protected confirm(): void {
+    const items: BulkItem[] = (this.preview()?.rows ?? [])
+      .filter((r: BulkRow) => r.ok && this.picked().has(r.row) && r.quoteId && r.optionId)
+      .map((r) => ({ row: r.row, quoteId: r.quoteId!, optionId: r.optionId! }));
+    if (!items.length) return;
+    this.busy.set(true);
+    this.error.set('');
+    this.service.book(items).subscribe({
+      next: (rs) => { this.results.set(rs); this.busy.set(false); this.notify.success(`${rs.filter((r) => r.booked).length} of ${rs.length} shipments booked.`); },
+      error: (e) => { this.busy.set(false); void errorMessage(e, 'The bookings could not be completed. Check Shipments before trying again.').then((m) => this.error.set(m)); }
+    });
+  }
+
+  protected reset(): void {
+    this.results.set(null);
+    this.preview.set(null);
+    this.picked.set(new Set());
+    this.error.set('');
+  }
+}
