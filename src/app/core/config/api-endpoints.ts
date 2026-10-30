@@ -21,6 +21,7 @@ export const API = {
     book: '/customer-portal/shipments',
     bulkTemplate: '/customer-portal/bulk-bookings/template',
     bulkPreview: '/customer-portal/bulk-bookings/preview',
+    bulkRow: '/customer-portal/bulk-bookings/row',
     bulkBook: '/customer-portal/bulk-bookings/book',
     bookings: '/customer-portal/bookings',
     bookingCouriers: '/customer-portal/bookings/couriers',
