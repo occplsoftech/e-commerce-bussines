@@ -19,6 +19,8 @@ export interface BulkRow {
   /** BUSINESS_RATE (the customer's own rate) or CHEAPEST. */
   basis: string | null;
   total: number | null;
+  /** The sheet values of this row, keyed by the template headings, in column order. */
+  fields: Record<string, string>;
 }
 
 export interface BulkPreview { rows: BulkRow[]; okCount: number; errorCount: number; okTotal: number; }
@@ -35,6 +37,11 @@ export class BulkBookingService {
     const body = new FormData();
     body.append('file', file);
     return this.api.post<BulkPreview>(API.portal.bulkPreview, body);
+  }
+
+  /** Re-checks and re-prices one row the customer edited on screen. */
+  checkRow(row: number, fields: Record<string, string>): Observable<BulkRow> {
+    return this.api.post<BulkRow>(API.portal.bulkRow, { row, fields });
   }
 
   book(items: BulkItem[]): Observable<BulkResult[]> { return this.api.post<BulkResult[]>(API.portal.bulkBook, { items }); }

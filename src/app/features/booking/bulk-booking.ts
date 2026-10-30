@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { NotificationService } from '@core/services/notification.service';
 import { Icon } from '@shared/components/icon';
@@ -17,7 +18,7 @@ const MAX_BYTES = 5 * 1024 * 1024;
 @Component({
   selector: 'ecb-bulk-booking',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icon, CurrencyPipe, RouterLink],
+  imports: [Icon, CurrencyPipe, RouterLink, FormsModule],
   template: `
     <section class="page">
       <div class="page__head">
@@ -50,7 +51,7 @@ const MAX_BYTES = 5 * 1024 * 1024;
             </div>
             <div class="scroll">
               <table>
-                <thead><tr><th></th><th>Row</th><th>To</th><th>Pincode</th><th>Weight</th><th>Payment</th><th>Courier</th><th>Priced at</th><th class="r">Total</th></tr></thead>
+                <thead><tr><th></th><th>Row</th><th>To</th><th>Pincode</th><th>Weight</th><th>Payment</th><th>Courier</th><th>Priced at</th><th class="r">Total</th><th></th></tr></thead>
                 <tbody>
                   @for (r of p.rows; track r.row) {
                     <tr [class.err]="!r.ok">
@@ -67,7 +68,21 @@ const MAX_BYTES = 5 * 1024 * 1024;
                       } @else {
                         <td colspan="3" class="msg">{{ r.error }}</td>
                       }
+                      <td><button type="button" class="link" (click)="edit(r)">{{ editing() === r.row ? 'Close' : 'Edit' }}</button></td>
                     </tr>
+                    @if (editing() === r.row) {
+                      <tr class="editor"><td colspan="10">
+                        <div class="grid">
+                          @for (k of draftKeys(); track k) {
+                            <label><span>{{ k }}</span><input type="text" [ngModel]="draft()[k]" (ngModelChange)="setDraft(k, $event)" [name]="k" /></label>
+                          }
+                        </div>
+                        <div class="actions">
+                          <button type="button" class="btn btn--primary" [disabled]="busy()" (click)="recheck(r.row)">{{ busy() ? 'Checking…' : 'Save and re-check' }}</button>
+                          <button type="button" class="btn btn--ghost" (click)="editing.set(null)">Cancel</button>
+                        </div>
+                      </td></tr>
+                    }
                   }
                 </tbody>
               </table>
@@ -122,6 +137,11 @@ const MAX_BYTES = 5 * 1024 * 1024;
     .r { text-align: right; }
     tr.err td { background: var(--danger-bg); }
     td.msg { white-space: normal; color: var(--danger); }
+    .link { background: none; border: 0; color: var(--occpl-color-primary); font: 600 13px var(--font-sans); cursor: pointer; padding: 0; }
+    tr.editor td { background: var(--occpl-color-neutral-surface); white-space: normal; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px 14px; }
+    .grid label { display: flex; flex-direction: column; gap: 3px; font: 500 12px var(--font-sans); color: var(--content-muted); }
+    .grid input { padding: 7px 9px; border: 1px solid var(--surface-border); border-radius: var(--occpl-radius-md); background: var(--surface); color: var(--content-fg); font: 400 13px var(--font-sans); }
     .actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
   `]
 })
@@ -135,6 +155,9 @@ export class BulkBooking {
   protected readonly preview = signal<BulkPreview | null>(null);
   protected readonly picked = signal<Set<number>>(new Set());
   protected readonly results = signal<BulkResult[] | null>(null);
+  protected readonly editing = signal<number | null>(null);
+  protected readonly draft = signal<Record<string, string>>({});
+  protected readonly draftKeys = computed(() => Object.keys(this.draft()));
 
   protected readonly selectedTotal = computed(() =>
     (this.preview()?.rows ?? []).filter((r) => this.picked().has(r.row)).reduce((sum, r) => sum + (r.total ?? 0), 0));
@@ -162,6 +185,36 @@ export class BulkBooking {
         this.busy.set(false);
       },
       error: (e) => { this.busy.set(false); void errorMessage(e, 'The file could not be checked.').then((m) => this.error.set(m)); }
+    });
+  }
+
+  protected edit(r: BulkRow): void {
+    if (this.editing() === r.row) { this.editing.set(null); return; }
+    this.draft.set({ ...r.fields });
+    this.editing.set(r.row);
+  }
+
+  protected setDraft(key: string, value: string): void { this.draft.update((d) => ({ ...d, [key]: value })); }
+
+  /** Sends the edited values back for the same checks and pricing; the row is replaced and, when it is now fine, selected for booking. */
+  protected recheck(rowNo: number): void {
+    this.busy.set(true);
+    this.error.set('');
+    this.service.checkRow(rowNo, this.draft()).subscribe({
+      next: (fresh) => {
+        const p = this.preview();
+        if (p) {
+          const rows = p.rows.map((r) => (r.row === rowNo ? fresh : r));
+          const ok = rows.filter((r) => r.ok);
+          this.preview.set({ rows, okCount: ok.length, errorCount: rows.length - ok.length, okTotal: ok.reduce((s, r) => s + (r.total ?? 0), 0) });
+          const next = new Set(this.picked());
+          if (fresh.ok) next.add(rowNo); else next.delete(rowNo);
+          this.picked.set(next);
+        }
+        this.busy.set(false);
+        if (fresh.ok) this.editing.set(null);
+      },
+      error: (e) => { this.busy.set(false); void errorMessage(e, 'The row could not be checked.').then((m) => this.error.set(m)); }
     });
   }
 
