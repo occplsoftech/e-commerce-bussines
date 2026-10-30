@@ -9,7 +9,7 @@ import { AddressBook } from './address-book';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="page">
-      <div class="page__head">
+      <div class="page__head" data-icon="storefront">
         <div>
           <h1 class="text-display">Profile</h1>
           <p class="text-caption">To change your company details, contact your account manager. You can manage your saved addresses below.</p>

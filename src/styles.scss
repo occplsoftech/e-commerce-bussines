@@ -38,7 +38,51 @@ h1, h2, h3 { font-family: var(--font-display); }
 
 // Canonical page layout: every feature uses these, none redefines them.
 .page { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 1180px; margin: 0 auto; }
-.page__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+// Every page opens with this band: the brand gradient with a soft highlight, white title and subtitle, actions on the right.
+.page__head {
+  position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 22px 26px; border-radius: var(--r-card); color: #fff; box-shadow: var(--occpl-shadow-md);
+  background:
+    radial-gradient(520px 220px at 88% -30%, rgb(255 255 255 / 26%), transparent 70%),
+    radial-gradient(380px 200px at 0% 130%, rgb(255 255 255 / 12%), transparent 70%),
+    var(--occpl-gradient-brand);
+}
+.page__head h1, .page__head .text-display { color: #fff !important; text-shadow: 0 1px 2px rgb(0 0 0 / 18%); }
+.page__head p, .page__head .text-caption { color: rgb(255 255 255 / 88%) !important; margin: 6px 0 0; }
+.page__head .btn--ghost { background: rgb(255 255 255 / 14%); color: #fff; border-color: rgb(255 255 255 / 45%); }
+.page__head .btn--ghost:hover:not(:disabled) { background: rgb(255 255 255 / 26%); border-color: #fff; }
+.page__head .btn--primary { background: #fff; color: var(--occpl-color-primary-strong); border-color: #fff; }
+.page__head .btn--primary:hover:not(:disabled) { filter: none; background: rgb(255 255 255 / 92%); }
+@media (max-width: 560px) { .page__head { padding: 18px 18px; } }
+// Page icon: a glass tile at the left of the band, the glyph drawn from the portal's own icon paths.
+.page__head[data-icon] { padding-left: 92px; }
+.page__head[data-icon]::before {
+  content: ""; position: absolute; left: 24px; top: 50%; width: 52px; height: 52px; transform: translateY(-50%); border-radius: 16px;
+  background: rgb(255 255 255 / 18%); border: 1px solid rgb(255 255 255 / 38%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 30%), 0 6px 16px rgb(0 0 0 / 16%);
+}
+.page__head[data-icon]::after {
+  content: ""; position: absolute; left: 24px; top: 50%; width: 52px; height: 52px; transform: translateY(-50%); background: #fff;
+  -webkit-mask: var(--page-icon) center / 28px 28px no-repeat; mask: var(--page-icon) center / 28px 28px no-repeat;
+}
+@media (max-width: 560px) {
+  .page__head[data-icon] { padding-left: 80px; }
+  .page__head[data-icon]::before, .page__head[data-icon]::after { left: 18px; width: 46px; height: 46px; }
+  .page__head[data-icon]::after { -webkit-mask-size: 24px 24px; mask-size: 24px 24px; }
+}
+.page__head[data-icon="account_balance_wallet"] { --page-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%207a2%202%200%200%201%202-2h12v3M4%207v11a2%202%200%200%200%202%202h14V8H6a2%202%200%200%201-2-2M16%2014h.01%22%2F%3E%3C%2Fsvg%3E"); }
+.page__head[data-icon="add_box"] { --page-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M5%204h14a1%201%200%200%201%201%201v14a1%201%200%200%201-1%201H5a1%201%200%200%201-1-1V5a1%201%200%200%201%201-1zM12%208v8M8%2012h8%22%2F%3E%3C%2Fsvg%3E"); }
+.page__head[data-icon="compare_arrows"] { --page-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%208h13M13%204l4%204-4%204M20%2016H7M11%2012l-4%204%204%204%22%2F%3E%3C%2Fsvg%3E"); }
+.page__head[data-icon="description"] { --page-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%203h7l5%205v13H7zM14%203v5h5M10%2013h6M10%2017h6%22%2F%3E%3C%2Fsvg%3E"); }
+.page__head[data-icon="group"] { --page-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M9%2011a3.5%203.5%200%201%200%200-7%203.5%203.5%200%200%200%200%207zM2.5%2020a6.5%206.5%200%200%201%2013%200M16%204.3a3.5%203.5%200%200%201%200%206.4M18%2014.5a6.5%206.5%200%200%201%203.5%205.5%22%2F%3E%3C%2Fsvg%3E"); }
+.page__head[data-icon="local_shipping"] { --page-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%206h11v10H3zM14%209h4l3%203v4h-7M7%2019a2%202%200%201%200%200-4%202%202%200%200%200%200%204zM17%2019a2%202%200%201%200%200-4%202%202%200%200%200%200%204z%22%2F%3E%3C%2Fsvg%3E"); }
+.page__head[data-icon="location_on"] { --page-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2021s-7-6.2-7-11a7%207%200%200%201%2014%200c0%204.8-7%2011-7%2011zM12%2012.5a2.5%202.5%200%201%200%200-5%202.5%202.5%200%200%200%200%205%22%2F%3E%3C%2Fsvg%3E"); }
+.page__head[data-icon="person"] { --page-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2012a4%204%200%201%200%200-8%204%204%200%200%200%200%208zM4%2021a8%208%200%200%201%2016%200%22%2F%3E%3C%2Fsvg%3E"); }
+.page__head[data-icon="space_dashboard"] { --page-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%204h7v9H4zM13%204h7v5h-7zM13%2011h7v9h-7zM4%2015h7v5H4z%22%2F%3E%3C%2Fsvg%3E"); }
+.page__head[data-icon="storefront"] { --page-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%209l1.5-5h13L20%209M4%209a2.7%202.7%200%200%200%205.3%200%202.7%202.7%200%200%200%205.4%200A2.7%202.7%200%200%200%2020%209M5%2012v8h14v-8M10%2020v-5h4v5%22%2F%3E%3C%2Fsvg%3E"); }
+.page__head[data-icon="task_alt"] { --page-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M21%2011.1V12a9%209%200%201%201-5.3-8.2M8%2011.5l3.5%203.5L21%205.5%22%2F%3E%3C%2Fsvg%3E"); }
+.page__head[data-icon="upload"] { --page-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%2016V4M7%209l5-5%205%205M5%2020h14%22%2F%3E%3C%2Fsvg%3E"); }
+.page__head[data-icon="verified_user"] { --page-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%203l7%203v6c0%204.5-3%207.8-7%209-4-1.2-7-4.5-7-9V6zM8.5%2012l2.5%202.5%204.5-5%22%2F%3E%3C%2Fsvg%3E"); }
+
 .page__actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
 // Form primitives shared by every form in the portal.

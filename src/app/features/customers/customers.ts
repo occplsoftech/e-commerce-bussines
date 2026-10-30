@@ -16,7 +16,7 @@ import { errorMessage } from '@shared/utils/http-error';
   imports: [Icon, ReactiveFormsModule, RouterLink],
   template: `
     <section class="page">
-      <div class="page__head">
+      <div class="page__head" data-icon="group">
         <div>
           <h1 class="text-display">My customers</h1>
           <p class="text-caption">Customers you register here are linked to your account. Each can have as many addresses as you need.</p>

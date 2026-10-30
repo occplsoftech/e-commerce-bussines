@@ -22,7 +22,7 @@ const MAX_BYTES = 5 * 1024 * 1024;
   imports: [Icon, DatePipe, DecimalPipe, FormsModule],
   template: `
     <section class="page">
-      <div class="page__head">
+      <div class="page__head" data-icon="verified_user">
         <div>
           <h1 class="text-display">KYC</h1>
           <p class="text-caption">Verify your e-mail and mobile and upload your business documents. Your courier company then reviews each document.</p>

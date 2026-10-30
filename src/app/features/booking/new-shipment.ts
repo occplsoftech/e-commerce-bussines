@@ -23,7 +23,7 @@ import { differentAddresses, mobileValidator, normaliseMobile, pincodeValidator,
   imports: [Icon, ReactiveFormsModule, PartyFields, BookingSteps, RouteBanner, PhotoPicker],
   template: `
     <section class="page">
-      <div class="page__head">
+      <div class="page__head" data-icon="add_box">
         <div>
           <h1 class="text-display">Book a shipment</h1>
           <p class="text-caption">Tell us where it is going and what it is. Fields marked * are required.</p>

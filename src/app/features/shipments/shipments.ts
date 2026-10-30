@@ -30,7 +30,7 @@ const EMPTY: BookingFilter = { status: '', delivery: '', provider: '', from: '',
   imports: [CourierLogo, Icon, RouterLink, FormsModule, DatePipe, CurrencyPipe],
   template: `
     <section class="page">
-      <div class="page__head">
+      <div class="page__head" data-icon="local_shipping">
         <div>
           <h1 class="text-display">Shipments</h1>
           <p class="text-caption">Bookings you made here. Open one to track it or download its label.</p>

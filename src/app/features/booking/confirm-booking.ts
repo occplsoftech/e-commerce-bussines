@@ -25,7 +25,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
   imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, DecimalPipe, BookingSteps, RouteBanner, PaymentLabelPipe, PaymentIconPipe],
   template: `
     <section class="page">
-      <div class="page__head">
+      <div class="page__head" data-icon="task_alt">
         <div><h1 class="text-display">Confirm booking</h1><p class="text-caption">One last look. You will not be charged twice if you click again.</p></div>
         <div class="page__actions"><a class="btn btn--ghost" [routerLink]="['/book/rates', quoteId()]">Back to rates</a></div>
       </div>

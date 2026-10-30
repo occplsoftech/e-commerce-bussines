@@ -31,7 +31,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
   imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, DatePipe, DecimalPipe, BookingSteps, RouteBanner],
   template: `
     <section class="page">
-      <div class="page__head">
+      <div class="page__head" data-icon="compare_arrows">
         <div>
           <h1 class="text-display">Compare &amp; select a courier</h1>
           <p class="text-caption">Every price below is final, with taxes and charges. Pick the one that suits the parcel.</p>

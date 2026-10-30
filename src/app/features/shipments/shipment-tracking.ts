@@ -14,7 +14,7 @@ import { TrackingTimeline, TimelineItem } from './tracking-timeline';
   imports: [Icon, RouterLink, DatePipe, TrackingTimeline],
   template: `
     <section class="page">
-      <div class="page__head">
+      <div class="page__head" data-icon="location_on">
         <div>
           <a class="back" routerLink="/dashboard"><ecb-icon name="arrow_back" /> Dashboard</a>
           <h1 class="text-display">Track shipment</h1>

@@ -22,7 +22,7 @@ import { errorMessage } from '@shared/utils/http-error';
       @if (loadError()) {
         <p class="alert alert--error" role="alert">This customer was not found.</p>
       } @else if (customer(); as c) {
-        <div class="page__head">
+        <div class="page__head" data-icon="person">
           <div>
             <h1 class="text-display">{{ c.displayName }}</h1>
             <p class="text-caption">Code <span class="mono">{{ c.customerCode }}</span> · registered by you</p>

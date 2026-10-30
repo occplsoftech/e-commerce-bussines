@@ -21,7 +21,7 @@ const MAX_BYTES = 5 * 1024 * 1024;
   imports: [Icon, CurrencyPipe, RouterLink, FormsModule],
   template: `
     <section class="page">
-      <div class="page__head">
+      <div class="page__head" data-icon="upload">
         <div>
           <h1 class="text-display">Bulk booking</h1>
           <p class="text-caption">Upload an Excel sheet with one row per shipment. You see every row checked and priced before anything is booked.</p>
@@ -43,7 +43,7 @@ const MAX_BYTES = 5 * 1024 * 1024;
 
       @if (preview(); as p) {
         @if (!results()) {
-          <article class="app-card">
+          <article class="app-card box">
             <div class="sum">
               <span><strong>{{ p.okCount }}</strong> ready</span>
               <span [class.bad]="p.errorCount > 0"><strong>{{ p.errorCount }}</strong> with errors</span>
@@ -57,37 +57,39 @@ const MAX_BYTES = 5 * 1024 * 1024;
                     <tr [class.err]="!r.ok">
                       <td>@if (r.ok) { <input type="checkbox" [checked]="picked().has(r.row)" (change)="toggle(r.row)" [attr.aria-label]="'Book row ' + r.row" /> }</td>
                       <td>{{ r.row }}</td>
-                      <td>{{ r.deliveryName || '—' }}</td>
+                      <td class="wrap">{{ r.deliveryName || '—' }}</td>
                       <td>{{ r.deliveryPincode || '—' }}</td>
                       <td>{{ r.weightKg ?? '—' }}</td>
                       <td>{{ r.paymentMode }}</td>
                       @if (r.ok) {
-                        <td>{{ r.providerName }} · {{ r.serviceName }}</td>
-                        <td>{{ r.basis === 'BUSINESS_RATE' ? 'Your business rate' : 'Cheapest courier' }}</td>
+                        <td class="wrap">{{ r.providerName }} · {{ r.serviceName }}</td>
+                        <td class="wrap">{{ r.basis === 'BUSINESS_RATE' ? 'Your business rate' : 'Cheapest courier' }}</td>
                         <td class="r num-tabular">{{ r.total | currency: 'INR' : 'symbol' : '1.2-2' }}</td>
                       } @else {
                         <td colspan="3" class="msg">{{ r.error }}</td>
                       }
                       <td><button type="button" class="link" (click)="edit(r)">{{ editing() === r.row ? 'Close' : 'Edit' }}</button></td>
                     </tr>
-                    @if (editing() === r.row) {
-                      <tr class="editor"><td colspan="10">
-                        <div class="grid">
-                          @for (k of draftKeys(); track k) {
-                            <label><span>{{ k }}</span><input type="text" [ngModel]="draft()[k]" (ngModelChange)="setDraft(k, $event)" [name]="k" /></label>
-                          }
-                        </div>
-                        <div class="actions">
-                          <button type="button" class="btn btn--primary" [disabled]="busy()" (click)="recheck(r.row)">{{ busy() ? 'Checking…' : 'Save and re-check' }}</button>
-                          <button type="button" class="btn btn--ghost" (click)="editing.set(null)">Cancel</button>
-                        </div>
-                      </td></tr>
-                    }
+
                   }
                 </tbody>
               </table>
             </div>
-            @if (p.errorCount > 0) { <p class="alert alert--warn">Fix the rows with errors in your sheet and upload it again, or book only the ready rows.</p> }
+            @if (editing() !== null) {
+              <section class="editor" aria-label="Edit row">
+                <h2 class="editor__title">Edit row {{ editing() }}</h2>
+                <div class="grid">
+                  @for (k of draftKeys(); track k) {
+                    <label><span>{{ k }}</span><input type="text" [ngModel]="draft()[k]" (ngModelChange)="setDraft(k, $event)" [name]="k" /></label>
+                  }
+                </div>
+                <div class="actions">
+                  <button type="button" class="btn btn--primary" [disabled]="busy()" (click)="recheck(editing()!)">{{ busy() ? 'Checking…' : 'Save and re-check' }}</button>
+                  <button type="button" class="btn btn--ghost" (click)="editing.set(null)">Cancel</button>
+                </div>
+              </section>
+            }
+            @if (p.errorCount > 0) { <p class="alert alert--warn">Click Edit on a row to fix it here, or fix your sheet and upload it again. Only the ready rows are booked.</p> }
             <div class="actions">
               <button type="button" class="btn btn--primary" [disabled]="busy() || picked().size === 0" (click)="confirm()">
                 {{ busy() ? 'Booking…' : 'Book ' + picked().size + ' shipment' + (picked().size === 1 ? '' : 's') }}
@@ -98,13 +100,13 @@ const MAX_BYTES = 5 * 1024 * 1024;
       }
 
       @if (results(); as rs) {
-        <article class="app-card">
+        <article class="app-card box">
           <div class="sum">
             <span><strong>{{ bookedCount() }}</strong> booked</span>
             <span [class.bad]="rs.length - bookedCount() > 0"><strong>{{ rs.length - bookedCount() }}</strong> not booked</span>
           </div>
           <div class="scroll">
-            <table>
+            <table class="small">
               <thead><tr><th>Row</th><th>Result</th><th>Tracking number</th><th>Reference</th></tr></thead>
               <tbody>
                 @for (r of rs; track r.row) {
@@ -127,22 +129,29 @@ const MAX_BYTES = 5 * 1024 * 1024;
     </section>
   `,
   styles: [`
+    :host { display: block; min-width: 0; }
+    .box { padding: 18px 20px; min-width: 0; }
     .drop { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 32px 16px; text-align: center; border-style: dashed; }
     .drop p { margin: 0; }
-    .sum { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 12px; font: 400 14px var(--font-sans); }
+    .sum { display: flex; gap: 8px 24px; flex-wrap: wrap; margin-bottom: 14px; font: 400 14px var(--font-sans); }
     .sum .bad { color: var(--danger); }
-    .scroll { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font: 400 13px var(--font-sans); }
-    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--surface-border); white-space: nowrap; }
+    .scroll { overflow-x: auto; border: 1px solid var(--surface-border); border-radius: 10px; }
+    table { width: 100%; min-width: 820px; border-collapse: collapse; font: 400 13px var(--font-sans); }
+    th, td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--surface-border); white-space: nowrap; }
+    table.small { min-width: 0; }
+    tbody tr:last-child td { border-bottom: 0; }
+    td.wrap { white-space: normal; min-width: 150px; overflow-wrap: anywhere; }
+    td.msg { white-space: normal; color: var(--danger); overflow-wrap: anywhere; }
     .r { text-align: right; }
     tr.err td { background: var(--danger-bg); }
-    td.msg { white-space: normal; color: var(--danger); }
     .link { background: none; border: 0; color: var(--occpl-color-primary); font: 600 13px var(--font-sans); cursor: pointer; padding: 0; }
-    tr.editor td { background: var(--occpl-color-neutral-surface); white-space: normal; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px 14px; }
-    .grid label { display: flex; flex-direction: column; gap: 3px; font: 500 12px var(--font-sans); color: var(--content-muted); }
-    .grid input { padding: 7px 9px; border: 1px solid var(--surface-border); border-radius: var(--occpl-radius-md); background: var(--surface); color: var(--content-fg); font: 400 13px var(--font-sans); }
+    .editor { margin-top: 16px; padding: 16px; border: 1px solid var(--surface-border); border-radius: 10px; background: var(--occpl-color-neutral-surface); }
+    .editor__title { margin: 0 0 12px; font: 700 15px var(--font-sans); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px 16px; }
+    .grid label { display: flex; flex-direction: column; gap: 4px; font: 500 12px var(--font-sans); color: var(--content-muted); min-width: 0; }
+    .grid input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--surface-border); border-radius: var(--occpl-radius-md); background: var(--surface); color: var(--content-fg); font: 400 13px var(--font-sans); }
     .actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+    .alert { margin-top: 14px; }
   `]
 })
 export class BulkBooking {
