@@ -29,7 +29,7 @@ type Tab = 'statement' | 'requests';
   imports: [Icon, CurrencyPipe, DatePipe, FormsModule],
   template: `
     <section class="page">
-      <div class="page__head">
+      <div class="page__head" data-icon="account_balance_wallet">
         <div>
           <h1 class="text-display">Wallet</h1>
           <p class="text-caption">Add money once, then pay for your courier bookings from it. Every credit and debit is listed below.</p>

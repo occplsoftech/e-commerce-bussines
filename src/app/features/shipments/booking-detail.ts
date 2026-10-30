@@ -23,7 +23,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
   imports: [CourierLogo, Icon, RouterLink, CurrencyPipe, DatePipe, DecimalPipe, TransportModePipe, PaymentLabelPipe, TrackingTimeline, ShipmentProgress, LabelSheet, BookingPhotos],
   template: `
     <section class="page">
-      <div class="page__head">
+      <div class="page__head" data-icon="description">
         <div>
           <a class="back" routerLink="/shipments"><ecb-icon name="arrow_back" /> Shipments</a>
           <h1 class="text-display">Shipment@if (booking()?.trackingNumber; as awb) { <span class="awb">{{ awb }}</span> }</h1>

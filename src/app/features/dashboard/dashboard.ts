@@ -18,7 +18,7 @@ import { STATUS_VIEW } from '@shared/utils/shipment-status';
   imports: [Icon, RouterLink, DatePipe, BarChart, DonutChart],
   template: `
     <section class="page">
-      <div class="page__head">
+      <div class="page__head" data-icon="space_dashboard">
         <div>
           <h1 class="text-display">Hello{{ customer.name() ? ', ' + customer.name() : '' }}</h1>
           @if (customer.website(); as site) {
