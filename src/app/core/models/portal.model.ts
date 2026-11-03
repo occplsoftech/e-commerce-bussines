@@ -109,6 +109,8 @@ export interface RateOption {
   currency: string;
   breakdown: BreakdownLine[];
   validUntil: string | null;
+  /** A short note from the courier option, e.g. "Minimum chargeable weight 20 kg" (Cargo). */
+  note?: string | null;
 }
 
 export interface UnavailableProvider { providerCode: string; providerName: string; reason: string | null; }

@@ -210,7 +210,7 @@ type Lookup = { state: 'idle' } | { state: 'loading' } | { state: 'ok'; text: st
   `]
 })
 export class RateCalculator {
-  protected minNote(o: RateOption): string | null { const q = this.quote(); return minChargeNote(o, q?.actualWeightKg, q?.volumetricWeightKg); }
+  protected minNote(o: RateOption): string | null { const q = this.quote(); return o.note || minChargeNote(o, q?.actualWeightKg, q?.volumetricWeightKg); }
 
   private readonly fb = inject(FormBuilder);
   private readonly portal = inject(PortalService);

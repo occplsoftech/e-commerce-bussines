@@ -189,7 +189,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
   `]
 })
 export class CompareRates implements OnInit {
-  protected minNote(o: RateOption): string | null { const q = this.quote(); return minChargeNote(o, q?.actualWeightKg, q?.volumetricWeightKg); }
+  protected minNote(o: RateOption): string | null { const q = this.quote(); return o.note || minChargeNote(o, q?.actualWeightKg, q?.volumetricWeightKg); }
 
   readonly quoteId = input.required<string>();
   private readonly portal = inject(PortalService);
