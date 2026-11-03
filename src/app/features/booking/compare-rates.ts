@@ -7,6 +7,7 @@ import { PortalService } from '@core/services/portal.service';
 import { RateOption, RateQuote } from '@core/models/portal.model';
 import { BookingDraftService } from './booking-draft.service';
 import { BookingSteps } from './booking-steps';
+import { minChargeNote } from '@shared/utils/rate-note';
 import { BannerChip, RouteBanner } from './route-banner';
 
 export type SortKey = 'price' | 'fastest' | 'name';
@@ -90,6 +91,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
                     <li class="fact"><ecb-icon name="schedule" /> {{ eta(o) }}</li>
                     <li class="fact"><ecb-icon name="scale" /> {{ o.chargeableWeightKg !== null ? (o.chargeableWeightKg | number: '1.0-3') + ' kg' : '—' }}</li>
                   </ul>
+                  @if (minNote(o); as note) { <p class="note">ℹ {{ note }}</p> }
                   <div class="option__price">
                     <div class="total num-tabular">{{ o.totalAmount | currency: o.currency : 'symbol' : '1.2-2' }}</div>
                     <div class="text-caption">incl. taxes</div>
@@ -159,6 +161,7 @@ import { CourierLogo } from '@shared/components/courier-logo';
     .tag { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:999px; font:700 .72rem var(--font-sans); letter-spacing:.03em; }
     .tag--cheap { background:var(--success-bg, #e3f6ec); color:var(--success); }
     .tag--fast { background:var(--occpl-color-info-surface); color:var(--occpl-color-accent); }
+    .note { margin:6px 0 0; font:500 .8rem var(--font-sans); color:var(--content-muted); }
     .facts { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:8px; }
     .fact { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; background:var(--occpl-color-neutral-surface); font:600 .82rem var(--font-sans); }
     .fact--mode { background:color-mix(in srgb, var(--tone) 14%, transparent); color:var(--tone); }
@@ -186,6 +189,8 @@ import { CourierLogo } from '@shared/components/courier-logo';
   `]
 })
 export class CompareRates implements OnInit {
+  protected minNote(o: RateOption): string | null { const q = this.quote(); return minChargeNote(o, q?.actualWeightKg, q?.volumetricWeightKg); }
+
   readonly quoteId = input.required<string>();
   private readonly portal = inject(PortalService);
   private readonly drafts = inject(BookingDraftService);
