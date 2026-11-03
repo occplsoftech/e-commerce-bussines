@@ -10,6 +10,7 @@ import { Icon } from '@shared/components/icon';
 import { CourierLogo } from '@shared/components/courier-logo';
 import { PortalService } from '@core/services/portal.service';
 import { PincodeInfo, RateOption, RateQuote } from '@core/models/portal.model';
+import { minChargeNote } from '@shared/utils/rate-note';
 import { BookingDraftService } from '@features/booking/booking-draft.service';
 import { TransportModePipe } from '@features/booking/transport-mode.pipe';
 import { pincodeValidator, positiveNumber, wholeNumber } from '@features/booking/booking-validators';
@@ -131,6 +132,7 @@ type Lookup = { state: 'idle' } | { state: 'loading' } | { state: 'ok'; text: st
               <h2>{{ o.providerName }}</h2>
               <p class="rate__svc">{{ o.serviceName }}{{ o.transportMode ? ' · ' + (o.transportMode | titlecaseMode) : '' }}@if (o.etaMinDays) { · {{ o.etaMinDays }}{{ o.etaMaxDays && o.etaMaxDays !== o.etaMinDays ? '–' + o.etaMaxDays : '' }} days }</p>
               <strong class="rate__price">{{ o.totalAmount | currency: o.currency : 'symbol' : '1.2-2' }}</strong>
+              @if (minNote(o); as note) { <small class="rate__note">ℹ {{ note }}</small> }
               @if (o.chargeableWeightKg) { <small>{{ o.totalAmount / o.chargeableWeightKg | currency: o.currency : 'symbol' : '1.2-2' }} / kg · {{ o.chargeableWeightKg | number: '1.0-3' }} kg chargeable</small> }
               <details class="rate__breakup">
                 <summary>View breakup →</summary>
@@ -208,6 +210,8 @@ type Lookup = { state: 'idle' } | { state: 'loading' } | { state: 'ok'; text: st
   `]
 })
 export class RateCalculator {
+  protected minNote(o: RateOption): string | null { const q = this.quote(); return o.note || minChargeNote(o, q?.actualWeightKg, q?.volumetricWeightKg); }
+
   private readonly fb = inject(FormBuilder);
   private readonly portal = inject(PortalService);
   private readonly router = inject(Router);
