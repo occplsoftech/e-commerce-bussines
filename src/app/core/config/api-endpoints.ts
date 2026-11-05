@@ -23,6 +23,7 @@ export const API = {
     bulkPreview: '/customer-portal/bulk-bookings/preview',
     bulkRow: '/customer-portal/bulk-bookings/row',
     bulkBook: '/customer-portal/bulk-bookings/book',
+    bulkResults: '/customer-portal/bulk-bookings/results',
     bookings: '/customer-portal/bookings',
     bookingCouriers: '/customer-portal/bookings/couriers',
     booking: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}`,

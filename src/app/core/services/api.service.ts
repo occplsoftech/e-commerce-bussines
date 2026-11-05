@@ -33,6 +33,11 @@ export class ApiService {
     return this.http.delete<ApiResponse<T>>(this.base + path).pipe(map((r) => r.data));
   }
 
+  /** A file made from a posted body (e.g. an Excel sheet of results); not wrapped in ApiResponse. */
+  postBlob(path: string, body: unknown): Observable<Blob> {
+    return this.http.post(this.base + path, body, { responseType: 'blob' });
+  }
+
   /** A file download (e.g. a label PDF); not wrapped in ApiResponse. */
   blob(path: string): Observable<Blob> {
     return this.http.get(this.base + path, { responseType: 'blob' });
