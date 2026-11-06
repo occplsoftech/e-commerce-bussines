@@ -5,7 +5,12 @@ import { RouterLink } from '@angular/router';
 import { NotificationService } from '@core/services/notification.service';
 import { Icon } from '@shared/components/icon';
 import { errorMessage, saveBlob } from '@shared/utils/http-error';
+import { forkJoin } from 'rxjs';
+import { PortalService } from '@core/services/portal.service';
+import { BookingDetail } from '@core/models/portal.model';
 import { BulkBookingService, BulkItem, BulkPreview, BulkResult, BulkRow } from './bulk-booking.service';
+import { ShippingLabel } from './shipping-label';
+import { printLabels } from './label-sheet';
 
 const XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -18,7 +23,7 @@ const MAX_BYTES = 5 * 1024 * 1024;
 @Component({
   selector: 'ecb-bulk-booking',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Icon, CurrencyPipe, RouterLink, FormsModule],
+  imports: [Icon, CurrencyPipe, RouterLink, FormsModule, ShippingLabel],
   template: `
     <section class="page">
       <div class="page__head" data-icon="upload">
@@ -120,10 +125,22 @@ const MAX_BYTES = 5 * 1024 * 1024;
               </tbody>
             </table>
           </div>
+          @if (labelError()) { <p class="alert alert--warn" role="alert">{{ labelError() }}</p> }
           <div class="actions">
             <a class="btn btn--primary" routerLink="/shipments">View shipments</a>
+            @if (bookedCount() > 0) {
+              <button type="button" class="btn btn--ghost" (click)="printAll()" [disabled]="printing()">
+                <ecb-icon name="print" /> {{ printing() ? 'Preparing labels…' : 'Print all labels (' + bookedCount() + ')' }}</button>
+            }
+            <button type="button" class="btn btn--ghost" (click)="downloadResults()"><ecb-icon name="download" /> Download results (Excel)</button>
             <button type="button" class="btn btn--ghost" (click)="reset()">Upload another sheet</button>
           </div>
+          <!-- the labels are drawn here, out of sight, and copied to the print sheet by printLabels() -->
+          <section class="labelbox labelbox--hidden" aria-hidden="true">
+            @for (b of labelBookings(); track b.bookingId) {
+              @for (n of packageNumbers(b); track n) { <ecb-shipping-label [booking]="b" [index]="n" [total]="packageNumbers(b).length" /> }
+            }
+          </section>
         </article>
       }
     </section>
@@ -148,6 +165,7 @@ const MAX_BYTES = 5 * 1024 * 1024;
     .editor { margin-top: 16px; padding: 16px; border: 1px solid var(--surface-border); border-radius: 10px; background: var(--occpl-color-neutral-surface); }
     .editor__title { margin: 0 0 12px; font: 700 15px var(--font-sans); }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px 16px; }
+    .labelbox--hidden { position: absolute; left: -10000px; top: 0; width: 1px; height: 1px; overflow: hidden; }
     .grid label { display: flex; flex-direction: column; gap: 4px; font: 500 12px var(--font-sans); color: var(--content-muted); min-width: 0; }
     .grid input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--surface-border); border-radius: var(--occpl-radius-md); background: var(--surface); color: var(--content-fg); font: 400 13px var(--font-sans); }
     .actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
@@ -157,6 +175,7 @@ const MAX_BYTES = 5 * 1024 * 1024;
 export class BulkBooking {
   private readonly service = inject(BulkBookingService);
   private readonly notify = inject(NotificationService);
+  private readonly portal = inject(PortalService);
 
   protected readonly accept = `.xlsx,${XLSX}`;
   protected readonly busy = signal(false);
@@ -164,6 +183,9 @@ export class BulkBooking {
   protected readonly preview = signal<BulkPreview | null>(null);
   protected readonly picked = signal<Set<number>>(new Set());
   protected readonly results = signal<BulkResult[] | null>(null);
+  protected readonly labelBookings = signal<BookingDetail[]>([]);
+  protected readonly printing = signal(false);
+  protected readonly labelError = signal('');
   protected readonly editing = signal<number | null>(null);
   protected readonly draft = signal<Record<string, string>>({});
   protected readonly draftKeys = computed(() => Object.keys(this.draft()));
@@ -246,7 +268,38 @@ export class BulkBooking {
     });
   }
 
+  protected packageNumbers(b: BookingDetail): number[] {
+    const n = Math.max(1, Math.min(999, Number(b.parcel?.packageCount ?? 1) || 1));
+    return Array.from({ length: n }, (_, i) => i + 1);
+  }
+
+  /** Loads every booked shipment, draws its label(s) and prints them all, four to an A4 sheet. */
+  protected printAll(): void {
+    const ids = (this.results() ?? []).filter((r) => r.booked && r.bookingId).map((r) => r.bookingId!);
+    if (!ids.length) return;
+    this.printing.set(true);
+    this.labelError.set('');
+    forkJoin(ids.map((id) => this.portal.booking(id))).subscribe({
+      next: (bookings) => {
+        this.labelBookings.set(bookings);
+        // let the labels render before they are copied to the print sheet
+        setTimeout(() => { this.printing.set(false); printLabels(); }, 300);
+      },
+      error: (e) => { this.printing.set(false); void errorMessage(e, 'The labels could not be prepared. Open the shipments to print them one by one.').then((m) => this.labelError.set(m)); }
+    });
+  }
+
+  protected downloadResults(): void {
+    const names = new Map((this.preview()?.rows ?? []).map((r) => [r.row, r.deliveryName] as const));
+    const lines = (this.results() ?? []).map((r) => ({ row: r.row, deliveryName: names.get(r.row) ?? null, booked: r.booked, awb: r.awb, reference: r.reference, message: r.message }));
+    this.service.resultsSheet(lines).subscribe({
+      next: (b) => saveBlob(b, 'bulk-booking-results.xlsx'),
+      error: (e) => void errorMessage(e, 'The results could not be downloaded.').then((m) => this.error.set(m))
+    });
+  }
+
   protected reset(): void {
+    this.labelBookings.set([]);
     this.results.set(null);
     this.preview.set(null);
     this.picked.set(new Set());

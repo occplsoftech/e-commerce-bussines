@@ -33,18 +33,21 @@ export class LabelSheet {
   protected readonly numbers = computed(() => Array.from({ length: this.count() }, (_, i) => i + 1));
 
   /** Copies the labels, four to a sheet, into #ecb-print-root, prints, and cleans up afterwards. */
-  print(): void {
-    const root = document.createElement('div');
-    root.id = 'ecb-print-root';
-    let sheet: HTMLElement | null = null;
-    document.querySelectorAll('.labelbox .ecb-label').forEach((l, i) => {
-      if (i % 4 === 0) { sheet = document.createElement('div'); sheet.className = 'ecb-sheet'; root.appendChild(sheet); }
-      sheet!.appendChild(l.cloneNode(true));
-    });
-    document.body.appendChild(root);
-    document.body.classList.add('printing-label');
-    const done = () => { document.body.classList.remove('printing-label'); root.remove(); };
-    window.addEventListener('afterprint', done, { once: true });
-    window.print();
-  }
+  print(): void { printLabels(); }
+}
+
+/** Copies every rendered label (`.labelbox .ecb-label`) into #ecb-print-root, four to an A4 sheet, prints, and cleans up afterwards. */
+export function printLabels(): void {
+  const root = document.createElement('div');
+  root.id = 'ecb-print-root';
+  let sheet: HTMLElement | null = null;
+  document.querySelectorAll('.labelbox .ecb-label').forEach((l, i) => {
+    if (i % 4 === 0) { sheet = document.createElement('div'); sheet.className = 'ecb-sheet'; root.appendChild(sheet); }
+    sheet!.appendChild(l.cloneNode(true));
+  });
+  document.body.appendChild(root);
+  document.body.classList.add('printing-label');
+  const done = () => { document.body.classList.remove('printing-label'); root.remove(); };
+  window.addEventListener('afterprint', done, { once: true });
+  window.print();
 }

@@ -25,7 +25,8 @@ export interface BulkRow {
 
 export interface BulkPreview { rows: BulkRow[]; okCount: number; errorCount: number; okTotal: number; }
 export interface BulkItem { row: number; quoteId: string; optionId: string; }
-export interface BulkResult { row: number; booked: boolean; status: string; awb: string | null; reference: string | null; message: string; }
+export interface BulkResult { row: number; booked: boolean; status: string; awb: string | null; reference: string | null; message: string; bookingId: string | null; }
+export interface BulkResultLine { row: number; deliveryName: string | null; booked: boolean; awb: string | null; reference: string | null; message: string; }
 
 @Injectable({ providedIn: 'root' })
 export class BulkBookingService {
@@ -43,6 +44,9 @@ export class BulkBookingService {
   checkRow(row: number, fields: Record<string, string>): Observable<BulkRow> {
     return this.api.post<BulkRow>(API.portal.bulkRow, { row, fields });
   }
+
+  /** The results as an Excel sheet. */
+  resultsSheet(lines: BulkResultLine[]): Observable<Blob> { return this.api.postBlob(API.portal.bulkResults, { lines }); }
 
   book(items: BulkItem[]): Observable<BulkResult[]> { return this.api.post<BulkResult[]>(API.portal.bulkBook, { items }); }
 }
