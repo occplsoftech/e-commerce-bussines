@@ -208,4 +208,45 @@ describe('BookingDetail', () => {
     expect(c.choiceError()).toContain('no failed delivery');
     expect(c.choosing()).toBe('RETURN');
   });
+
+  const pod = { shipmentNumber: 'PUN-000001', trackingNumber: '2611', deliveredTo: 'Ravi <b>', deliveredAt: '2026-11-06T09:30:00Z',
+    photoUrl: 'https://signed/photo.jpg', signatureUrl: null, photoPending: false };
+
+  it('shows who received a delivered booking, when, and the approved photo', () => {
+    const fixture = create('BOOKED');
+    http.expectOne('/api/v1/customer-portal/bookings/b1/tracking').flush({ data: { available: false, events: [], retrievedAt: '' } });
+    fixture.componentInstance.booking.set({ ...fixture.componentInstance.booking()!, proofOfDelivery: pod });
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('Proof of delivery');
+    expect(el.textContent).toContain('Download POD');
+    expect(el.querySelector('img[alt="Delivery photo"]')?.getAttribute('src')).toBe('https://signed/photo.jpg');
+  });
+
+  it('says the photo is being checked until the POD is approved', () => {
+    const fixture = create('BOOKED');
+    http.expectOne('/api/v1/customer-portal/bookings/b1/tracking').flush({ data: { available: false, events: [], retrievedAt: '' } });
+    fixture.componentInstance.booking.set({ ...fixture.componentInstance.booking()!,
+      proofOfDelivery: { ...pod, photoUrl: null, photoPending: true } });
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('being checked');
+  });
+
+  it('prints a POD sheet with the details, escaping what the customer or receiver typed', () => {
+    const fixture = create('BOOKED');
+    http.expectOne('/api/v1/customer-portal/bookings/b1/tracking').flush({ data: { available: false, events: [], retrievedAt: '' } });
+    let written = '';
+    const fake = { document: { open: () => undefined, write: (h: string) => { written += h; }, close: () => undefined } };
+    const original = window.open;
+    window.open = (() => fake) as unknown as typeof window.open;
+    try {
+      fixture.componentInstance.printPod(fixture.componentInstance.booking()!, pod);
+    } finally {
+      window.open = original;
+    }
+    expect(written).toContain('Proof of delivery');
+    expect(written).toContain('PUN-000001');
+    expect(written).toContain('Ravi &lt;b&gt;');
+    expect(written).toContain('https://signed/photo.jpg');
+  });
 });
