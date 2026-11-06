@@ -7,6 +7,7 @@ import { Page } from '@core/models/portal.model';
 import { CHECKOUT_DISMISSED, RazorpayService } from '@core/services/razorpay.service';
 import { NotificationService } from '@core/services/notification.service';
 import { Icon } from '@shared/components/icon';
+import { errorMessage, saveBlob } from '@shared/utils/http-error';
 import { TopupRequest, TopupStatus, Wallet, WalletEntry, WalletService } from './wallet.service';
 
 const QUICK_AMOUNTS = [500, 1000, 2000, 5000];
@@ -118,6 +119,11 @@ type Tab = 'statement' | 'requests';
         </div>
 
         @if (tab() === 'statement') {
+          <form class="app-card export" (submit)="$event.preventDefault(); downloadStatement()" aria-label="Download statement">
+            <label><span>From</span><input type="date" name="from" [max]="statementTo() || today" [ngModel]="statementFrom()" (ngModelChange)="statementFrom.set($event)" /></label>
+            <label><span>To</span><input type="date" name="to" [min]="statementFrom()" [max]="today" [ngModel]="statementTo()" (ngModelChange)="statementTo.set($event)" /></label>
+            <button type="submit" class="btn btn--ghost" [disabled]="downloading()"><ecb-icon name="download" /> {{ downloading() ? 'Preparing…' : 'Download statement (Excel)' }}</button>
+          </form>
           <article class="app-card table-card">
             @if (!entries()) {
               <p class="empty">Loading…</p>
@@ -187,6 +193,9 @@ type Tab = 'statement' | 'requests';
     </section>
   `,
   styles: [`
+    .export { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; padding:14px 18px; margin-bottom:12px; }
+    .export label { display:flex; flex-direction:column; gap:4px; font:500 12px var(--font-sans); color:var(--content-muted); }
+    .export input { padding:8px 10px; border:1px solid var(--surface-border); border-radius:var(--r-field); background:var(--surface); color:inherit; font:400 14px var(--font-sans); }
     .status { display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:999px; font:700 .85rem var(--font-sans);
       background:var(--warning-bg); color:var(--warning); }
     .status.ok { background:var(--success-bg); color:var(--success); }
@@ -243,6 +252,20 @@ export class WalletPage implements OnInit {
   readonly entries = signal<Page<WalletEntry> | null>(null);
   readonly requests = signal<Page<TopupRequest> | null>(null);
   readonly error = signal<string | null>(null);
+  /** Today and the first of this month, YYYY-MM-DD in India time. */
+  protected readonly today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date());
+  readonly statementFrom = signal(this.today.slice(0, 8) + '01');
+  readonly statementTo = signal(this.today);
+  readonly downloading = signal(false);
+
+  downloadStatement(): void {
+    this.downloading.set(true);
+    this.error.set(null);
+    this.service.statement(this.statementFrom(), this.statementTo()).subscribe({
+      next: (b) => { this.downloading.set(false); saveBlob(b, `wallet-statement-${this.statementFrom()}-to-${this.statementTo()}.xlsx`); },
+      error: async (e: HttpErrorResponse) => { this.downloading.set(false); this.error.set(await errorMessage(e, 'The statement could not be downloaded.')); }
+    });
+  }
   readonly tab = signal<Tab>('statement');
 
   readonly amount = signal<number | null>(null);

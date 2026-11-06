@@ -39,8 +39,8 @@ export class ApiService {
   }
 
   /** A file download (e.g. a label PDF); not wrapped in ApiResponse. */
-  blob(path: string): Observable<Blob> {
-    return this.http.get(this.base + path, { responseType: 'blob' });
+  blob(path: string, query?: Record<string, unknown>): Observable<Blob> {
+    return this.http.get(this.base + path, { responseType: 'blob', params: toParams(query) });
   }
 }
 

@@ -95,4 +95,21 @@ describe('Shipments', () => {
     fixture.componentInstance.clear();
     expect(list().request.params.keys()).toEqual(['page', 'size']);
   });
+
+  it('exports with the filters chosen on the page', () => {
+    const fixture = create();
+    list().flush({ data: { ...empty, content: [row], totalElements: 1, totalPages: 1 } });
+    const c = fixture.componentInstance as any;
+    c.filter.set({ status: 'BOOKED', delivery: '', provider: 'DELHIVERY', from: '2026-11-01', to: '' });
+    URL.createObjectURL = () => 'blob:x';
+    URL.revokeObjectURL = () => undefined;
+    c.exportExcel();
+    const req = http.expectOne((r) => r.url === `${base}/export`);
+    expect(req.request.params.get('status')).toBe('BOOKED');
+    expect(req.request.params.get('provider')).toBe('DELHIVERY');
+    expect(req.request.params.get('from')).toBe('2026-11-01');
+    expect(req.request.params.has('to')).toBe(false);
+    req.flush(new Blob(['x']));
+    expect(c.exporting()).toBe(false);
+  });
 });

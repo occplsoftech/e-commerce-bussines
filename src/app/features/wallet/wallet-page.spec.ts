@@ -201,4 +201,21 @@ describe('WalletPage', () => {
     r.flush(ok(page([entry({ id: 'e9' })], { page: 1, first: false })));
     expect(f.componentInstance.entries()!.page).toBe(1);
   });
+
+  it('downloads the statement for the chosen period (this month by default)', () => {
+    const fixture = create();
+    const c = fixture.componentInstance as any;
+    expect(c.statementFrom()).toMatch(/^\d{4}-\d{2}-01$/);
+    c.statementFrom.set('2026-10-01');
+    c.statementTo.set('2026-10-31');
+    URL.createObjectURL = () => 'blob:x';
+    URL.revokeObjectURL = () => undefined;
+    c.downloadStatement();
+    const req = http.expectOne((r) => r.url === `${base}/statement`);
+    expect(req.request.params.get('from')).toBe('2026-10-01');
+    expect(req.request.params.get('to')).toBe('2026-10-31');
+    expect(req.request.responseType).toBe('blob');
+    req.flush(new Blob(['x']));
+    expect(c.downloading()).toBe(false);
+  });
 });
