@@ -17,6 +17,12 @@ import { differentAddresses, mobileValidator, normaliseMobile, pincodeValidator,
  * Step 1 of booking: pickup, delivery and package. "Compare rates" validates, keeps the draft and asks the
  * server to price it with every courier (prices always come from the server, never from here).
  */
+/** The package as sent for rates: the COD amount only on a COD shipment where one was entered (never a price). */
+function packageOf(p: Record<string, unknown>): ShipmentDraft['package'] {
+  const { codAmount, ...rest } = p;
+  return (rest['paymentMode'] === 'COD' && codAmount != null && codAmount !== '' ? { ...rest, codAmount } : rest) as unknown as ShipmentDraft['package'];
+}
+
 @Component({
   selector: 'ecb-new-shipment',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -128,6 +134,15 @@ import { differentAddresses, mobileValidator, normaliseMobile, pincodeValidator,
               </button>
             </span>
             <span class="hint">COD is offered only by couriers that support it. To Pay is offered by OCCPL Network only.</span>
+            @if (cod()) {
+              <div class="field codfield">
+                <label for="cod">Amount to collect from the receiver (₹)</label>
+                <span class="wrap"><span class="rs">₹</span><input id="cod" type="number" step="0.01" min="0" formControlName="codAmount" inputmode="decimal"
+                  [placeholder]="v().package?.declaredValue ?? 'Same as shipment value'" [class.invalid]="bad('package.codAmount')" /></span>
+                <span class="hint">Leave empty to collect the shipment value. After delivery this amount is credited to your wallet.</span>
+                @if (bad('package.codAmount')) { <span class="error">More than 0, 2 decimals.</span> }
+              </div>
+            }
           </div>
         </fieldset>
 
@@ -144,6 +159,7 @@ import { differentAddresses, mobileValidator, normaliseMobile, pincodeValidator,
     </section>
   `,
   styles: [`
+    .codfield { margin-top:12px; max-width:360px; }
     .form { display:flex; flex-direction:column; gap:20px; }
     .parties { align-items:start; }
     .pkg { border:1px solid var(--surface-border); border-top:4px solid var(--occpl-color-primary); padding:22px 22px 26px; margin:0; display:flex; flex-direction:column; gap:18px; min-width:0; }
@@ -205,7 +221,8 @@ export class NewShipment implements OnInit {
       packageCount: this.fb.control<number | null>(1, [Validators.required, wholeNumber(1, 999)]),
       contents: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(200)]),
       declaredValue: this.fb.control<number | null>(null, [Validators.required, positiveNumber(10_000_000, 2)]),
-      paymentMode: this.fb.nonNullable.control<'PREPAID' | 'COD' | 'TOPAY'>('PREPAID')
+      paymentMode: this.fb.nonNullable.control<'PREPAID' | 'COD' | 'TOPAY'>('PREPAID'),
+      codAmount: this.fb.control<number | null>(null, [positiveNumber(10_000_000, 2)])
     })
   }, { validators: differentAddresses });
 
@@ -298,7 +315,7 @@ export class NewShipment implements OnInit {
     const draft: ShipmentDraft = {
       pickup: { ...v.pickup, phone: normaliseMobile(v.pickup.phone) },
       delivery: { ...v.delivery, phone: normaliseMobile(v.delivery.phone) },
-      package: v.package as ShipmentDraft['package']
+      package: packageOf(v.package)
     };
     this.drafts.save(draft);
     this.comparing.set(true);

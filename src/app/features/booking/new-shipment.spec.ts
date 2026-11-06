@@ -45,6 +45,24 @@ describe('NewShipment', () => {
     expect(navigate).toHaveBeenCalledWith(['/book/rates', 'q1']);
   });
 
+  it('sends the amount to collect only for a COD shipment', () => {
+    const c = TestBed.createComponent(NewShipment).componentInstance;
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    fill(c);
+    c.form.patchValue({ package: { paymentMode: 'COD', codAmount: 1750 } });
+    c.compare();
+    const req = TestBed.inject(HttpTestingController).expectOne('/api/v1/customer-portal/rates/compare');
+    expect(req.request.body.pkg.codAmount).toBe(1750);
+    expect(JSON.stringify(req.request.body)).not.toMatch(/price|total|markup/i);
+    req.flush({ data: { quoteId: 'q2' } });
+
+    // switching back to prepaid drops it
+    c.form.patchValue({ package: { paymentMode: 'PREPAID' } });
+    c.compare();
+    const again = TestBed.inject(HttpTestingController).expectOne('/api/v1/customer-portal/rates/compare');
+    expect('codAmount' in again.request.body.pkg).toBe(false);
+  });
+
   it('shows the server\'s validation message', () => {
     const c = TestBed.createComponent(NewShipment).componentInstance;
     fill(c);

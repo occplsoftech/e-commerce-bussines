@@ -19,6 +19,8 @@ export interface PackageDetails {
   contents: string;
   declaredValue: number | null;
   paymentMode: 'PREPAID' | 'COD' | 'TOPAY';
+  /** COD only: the amount to collect from the receiver (empty means the shipment value). It is paid into the wallet after delivery. */
+  codAmount?: number | null;
 }
 
 export interface ShipmentDraft {

@@ -257,6 +257,9 @@ export interface BookingDetail {
   deliveryIssue?: DeliveryIssue | null;
   /** Who received it and when; photo and signature (short-lived links) once the POD is approved. */
   proofOfDelivery?: ProofOfDelivery | null;
+  /** COD: the amount the courier collects from the receiver, and when it was credited to the wallet (OCCPL Network). */
+  codAmount?: number | null;
+  codCollectedAt?: string | null;
 }
 
 /** A failed delivery attempt: why, how many, and what the customer chose (REATTEMPT, CHANGE_ADDRESS, RETURN). */
