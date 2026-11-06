@@ -66,4 +66,47 @@ describe('BookingDetail', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).not.toContain('Download label');
   });
+
+  it('offers Cancel only when the server says the booking can still be cancelled', () => {
+    const fixture = create('BOOKED');
+    http.expectOne('/api/v1/customer-portal/bookings/b1/tracking').flush({ data: { available: false, events: [], retrievedAt: '' } });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('Cancel booking');
+
+    fixture.componentInstance.booking.set({ ...fixture.componentInstance.booking()!, cancellable: true });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Cancel booking');
+  });
+
+  it('asks for confirmation, then cancels with the reason and reloads the booking', () => {
+    const fixture = create('BOOKED');
+    http.expectOne('/api/v1/customer-portal/bookings/b1/tracking').flush({ data: { available: false, events: [], retrievedAt: '' } });
+    const c = fixture.componentInstance;
+    c.booking.set({ ...c.booking()!, cancellable: true });
+    c.confirmingCancel.set(true);
+    c.cancelReason.set(' wrong address ');
+
+    c.cancelBooking();
+    const post = http.expectOne('/api/v1/customer-portal/bookings/b1/cancel');
+    expect(post.request.body).toEqual({ reason: 'wrong address' });
+    post.flush({ data: {} });
+    http.expectOne('/api/v1/customer-portal/bookings/b1').flush({ data: detail('CANCELLED') });
+
+    expect(c.confirmingCancel()).toBe(false);
+    expect(c.booking()!.status).toBe('CANCELLED');
+    expect(c.cancelMessage()).toContain('Booking cancelled');
+  });
+
+  it('shows the server reason when the parcel was already collected', async () => {
+    const fixture = create('BOOKED');
+    http.expectOne('/api/v1/customer-portal/bookings/b1/tracking').flush({ data: { available: false, events: [], retrievedAt: '' } });
+    const c = fixture.componentInstance;
+    c.cancelBooking();
+    http.expectOne('/api/v1/customer-portal/bookings/b1/cancel').flush(
+      { message: 'This parcel has already been collected, so the booking can no longer be cancelled.' },
+      { status: 422, statusText: 'Unprocessable' });
+    await new Promise((r) => setTimeout(r, 20));
+    expect(c.error()).toContain('already been collected');
+    expect(c.cancelling()).toBe(false);
+  });
 });

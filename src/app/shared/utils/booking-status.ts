@@ -6,7 +6,8 @@ export const BOOKING_STATUS_VIEW: Record<BookingStatus, { label: string; tone: '
   SUBMITTING: { label: 'Submitting', tone: 'info' },
   BOOKED: { label: 'Booked', tone: 'ok' },
   FAILED: { label: 'Not booked', tone: 'bad' },
-  OUTCOME_UNKNOWN: { label: 'Awaiting confirmation', tone: 'warn' }
+  OUTCOME_UNKNOWN: { label: 'Awaiting confirmation', tone: 'warn' },
+  CANCELLED: { label: 'Cancelled', tone: 'bad' }
 };
 
 /** Customer-facing wording and badge tone for each delivery stage of a booked shipment. */

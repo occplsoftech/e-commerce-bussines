@@ -38,7 +38,7 @@ describe('Shipments', () => {
     const options = (id: string) => Array.from(fixture.nativeElement.querySelectorAll(`#${id} option`) as NodeListOf<HTMLOptionElement>)
       .map((o) => o.textContent?.trim());
     expect(options('status-filter')).toEqual(['All statuses', 'Awaiting pickup', 'Picked up', 'In transit', 'Out for delivery',
-      'Delivered', 'Returned', 'Cancelled', 'Booked (any delivery status)', 'Awaiting confirmation', 'Submitting', 'Not booked']);
+      'Delivered', 'Returned', 'Cancelled', 'Booked (any delivery status)', 'Awaiting confirmation', 'Submitting', 'Not booked', 'Cancelled before pickup']);
     expect(options('courier-filter')).toEqual(['All couriers', 'Delhivery', 'Shiprocket']);
     expect(fixture.nativeElement.textContent).toContain('AWB1');
   });

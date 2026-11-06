@@ -14,7 +14,8 @@ const STATUSES: { value: string; label: string }[] = [
   { value: 'BOOKED', label: 'Booked (any delivery status)' },
   { value: 'OUTCOME_UNKNOWN', label: 'Awaiting confirmation' },
   { value: 'PENDING,SUBMITTING', label: 'Submitting' },
-  { value: 'FAILED', label: 'Not booked' }
+  { value: 'FAILED', label: 'Not booked' },
+  { value: 'CANCELLED', label: 'Cancelled before pickup' }
 ];
 /** Where a booked shipment is, as last reported by its courier. */
 const DELIVERIES: { value: string; label: string }[] = (Object.keys(DELIVERY_STAGE_VIEW) as DeliveryStage[])
