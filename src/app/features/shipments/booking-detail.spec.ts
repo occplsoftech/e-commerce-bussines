@@ -249,4 +249,17 @@ describe('BookingDetail', () => {
     expect(written).toContain('Ravi &lt;b&gt;');
     expect(written).toContain('https://signed/photo.jpg');
   });
+
+  it('shows the COD amount and whether it was collected and credited to the wallet', () => {
+    const fixture = create('BOOKED');
+    http.expectOne('/api/v1/customer-portal/bookings/b1/tracking').flush({ data: { available: false, events: [], retrievedAt: '' } });
+    const c = fixture.componentInstance;
+    c.booking.set({ ...c.booking()!, codAmount: 1750 });
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('to be collected on delivery');
+
+    c.booking.set({ ...c.booking()!, codAmount: 1750, codCollectedAt: '2026-11-07T10:00:00Z' });
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('credited to your wallet');
+  });
 });

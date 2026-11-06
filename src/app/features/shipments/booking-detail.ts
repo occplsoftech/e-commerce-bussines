@@ -102,6 +102,10 @@ function isoDate(days: number): string {
                 @if (b.transportMode) { <div><dt>Mode</dt><dd>{{ b.transportMode | titlecaseMode }}</dd></div> }
                 @if (b.etaMaxDays) { <div><dt>Estimated delivery</dt><dd>{{ eta(b) }}</dd></div> }
                 <div><dt>Booking ID</dt><dd class="mono small">{{ b.bookingId }}</dd></div>
+                @if (b.codAmount) {
+                  <div><dt>Cash on delivery</dt><dd>{{ b.codAmount | currency: b.currency : 'symbol' : '1.2-2' }}
+                    <span class="small cod-state">@if (b.codCollectedAt) { · collected {{ b.codCollectedAt | date: 'd MMM' }}, credited to your wallet } @else { · to be collected on delivery }</span></dd></div>
+                }
               </dl>
             </article>
 
@@ -264,6 +268,7 @@ function isoDate(days: number): string {
     .back ecb-icon { font-size:18px; }
     .awb { margin-left:12px; font:600 .5em ui-monospace, SFMono-Regular, Menlo, monospace; color:var(--content-muted); vertical-align:middle; }
     .progress { margin-bottom:0; }
+    .cod-state { color:var(--content-muted); }
     .pod__who { margin:0; font:500 14px var(--font-sans); }
     .pod__imgs { display:flex; gap:12px; flex-wrap:wrap; }
     .pod__imgs a { display:flex; flex-direction:column; gap:4px; align-items:center; text-decoration:none; color:var(--content-muted); font:500 12px var(--font-sans); }
