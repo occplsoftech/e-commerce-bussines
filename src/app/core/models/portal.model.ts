@@ -255,6 +255,8 @@ export interface BookingDetail {
   pickupSlots?: string[];
   /** The last failed delivery attempt and what the customer chose; null when none failed. */
   deliveryIssue?: DeliveryIssue | null;
+  /** Who received it and when; photo and signature (short-lived links) once the POD is approved. */
+  proofOfDelivery?: ProofOfDelivery | null;
 }
 
 /** A failed delivery attempt: why, how many, and what the customer chose (REATTEMPT, CHANGE_ADDRESS, RETURN). */
@@ -338,3 +340,9 @@ export interface SubCustomerRequest {
 
 /** A photo of the parcel, or a document, attached to a booking. */
 export interface BookingPhoto { id: string; kind: 'PARCEL' | 'DOCUMENT'; fileName: string; contentType: string; sizeBytes: number; uploadedAt: string; }
+
+/** Proof of delivery of a delivered booking. Photo and signature links expire after a few minutes; reload the page for new ones. */
+export interface ProofOfDelivery {
+  shipmentNumber: string | null; trackingNumber: string | null; deliveredTo: string | null; deliveredAt: string | null;
+  photoUrl: string | null; signatureUrl: string | null; photoPending: boolean;
+}

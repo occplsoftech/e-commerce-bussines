@@ -4,7 +4,8 @@ import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PortalService } from '@core/services/portal.service';
-import { BookingDetail as Detail, BookingParty, TrackingView } from '@core/models/portal.model';
+import { BookingDetail as Detail, BookingParty, ProofOfDelivery, TrackingView } from '@core/models/portal.model';
+import { RuntimeConfigService } from '@core/config/runtime-config.service';
 import { shipmentStatusView } from '@shared/utils/booking-status';
 import { errorMessage, saveBlob } from '@shared/utils/http-error';
 import { TransportModePipe } from '@features/booking/transport-mode.pipe';
@@ -128,6 +129,23 @@ function isoDate(days: number): string {
           </div>
 
           <div class="col">
+            @if (b.proofOfDelivery; as pod) {
+              <article class="app-card box podbox">
+                <div class="row">
+                  <h2 class="text-h2">Proof of delivery</h2>
+                  <button class="btn btn--primary" type="button" (click)="printPod(b, pod)"><ecb-icon name="download" /> Download POD</button>
+                </div>
+                <p class="pod__who">Delivered to <strong>{{ pod.deliveredTo || 'the receiver' }}</strong>@if (pod.deliveredAt) { on {{ pod.deliveredAt | date: 'EEE, d MMM yyyy, h:mm a' }} }</p>
+                @if (pod.photoUrl || pod.signatureUrl) {
+                  <div class="pod__imgs">
+                    @if (pod.photoUrl) { <a [href]="pod.photoUrl" target="_blank" rel="noopener"><img [src]="pod.photoUrl" alt="Delivery photo" /><span>Photo</span></a> }
+                    @if (pod.signatureUrl) { <a [href]="pod.signatureUrl" target="_blank" rel="noopener"><img [src]="pod.signatureUrl" alt="Receiver's signature" /><span>Signature</span></a> }
+                  </div>
+                } @else if (pod.photoPending) {
+                  <p class="text-caption">The delivery photo is being checked. It appears here once approved.</p>
+                }
+              </article>
+            }
             @if (b.deliveryIssue; as d) {
               <article class="app-card box issuebox" [class.issuebox--done]="!d.open">
                 <h2 class="text-h2">{{ d.open ? 'Delivery attempt failed' : 'Earlier delivery attempt' }}</h2>
@@ -246,6 +264,10 @@ function isoDate(days: number): string {
     .back ecb-icon { font-size:18px; }
     .awb { margin-left:12px; font:600 .5em ui-monospace, SFMono-Regular, Menlo, monospace; color:var(--content-muted); vertical-align:middle; }
     .progress { margin-bottom:0; }
+    .pod__who { margin:0; font:500 14px var(--font-sans); }
+    .pod__imgs { display:flex; gap:12px; flex-wrap:wrap; }
+    .pod__imgs a { display:flex; flex-direction:column; gap:4px; align-items:center; text-decoration:none; color:var(--content-muted); font:500 12px var(--font-sans); }
+    .pod__imgs img { width:140px; height:140px; object-fit:cover; border-radius:10px; border:1px solid var(--surface-border); background:#fff; }
     .issuebox { border:1px solid var(--danger, #b3123a); }
     .issuebox--done { border-color:var(--surface-border); }
     .issue__why { margin:0; font:500 14px var(--font-sans); }
@@ -288,6 +310,35 @@ export class BookingDetail implements OnInit {
   readonly trackingError = signal('Tracking could not be loaded. Please try again.');
   readonly labelError = signal<string | null>(null);
   readonly downloading = signal(false);
+  private readonly runtime = inject(RuntimeConfigService).config;
+
+  /** Opens an A4 proof-of-delivery sheet and the print dialog (choose "Save as PDF" to keep a file). */
+  printPod(b: Detail, pod: ProofOfDelivery): void {
+    const esc = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+    const when = pod.deliveredAt ? new Date(pod.deliveredAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+    const party = (p: BookingParty | null | undefined) => p ? `${esc(p.name)}<br>${esc(p.phone)}<br>${esc(p.address)}<br>${esc([p.city, p.pincode].filter(Boolean).join(' '))}` : '—';
+    const img = (url: string | null, label: string) => url ? `<figure><img src="${esc(url)}" alt="${label}"><figcaption>${label}</figcaption></figure>` : '';
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>POD ${esc(b.trackingNumber || pod.shipmentNumber)}</title>
+<style>body{font:14px/1.5 Arial,sans-serif;color:#111;margin:24px}h1{font-size:20px;margin:0 0 4px}.muted{color:#555}
+table{width:100%;border-collapse:collapse;margin:16px 0}td{border:1px solid #bbb;padding:8px 10px;vertical-align:top;width:50%}
+th{text-align:left;font-size:12px;text-transform:uppercase;color:#555;padding:4px 0}.imgs{display:flex;gap:16px}
+figure{margin:0}img{width:260px;height:260px;object-fit:contain;border:1px solid #bbb}figcaption{font-size:12px;color:#555}
+@page{size:A4;margin:14mm}</style></head><body>
+<h1>Proof of delivery</h1><div class="muted">${esc(this.runtime().companyName)}</div>
+<table><tr><td><b>AWB / Tracking no.</b><br>${esc(b.trackingNumber || pod.trackingNumber || '—')}</td><td><b>Shipment no.</b><br>${esc(pod.shipmentNumber || '—')}</td></tr>
+<tr><td><b>Delivered to</b><br>${esc(pod.deliveredTo || '—')}</td><td><b>Delivered on</b><br>${esc(when)}</td></tr>
+<tr><td><b>From</b><br>${party(b.pickup)}</td><td><b>To</b><br>${party(b.delivery)}</td></tr></table>
+<div class="imgs">${img(pod.photoUrl, 'Delivery photo')}${img(pod.signatureUrl, "Receiver's signature")}</div>
+${!pod.photoUrl && !pod.signatureUrl ? '<p class="muted">No photo or signature on record.</p>' : ''}
+<p class="muted">Generated ${esc(new Date().toLocaleString('en-IN'))}</p>
+<script>window.onload=function(){setTimeout(function(){window.print()},300)}</script></body></html>`;
+    const w = window.open('', '_blank');
+    if (!w) { this.error.set('Allow pop-ups for this site to download the POD.'); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  }
+
   readonly choosing = signal<'REATTEMPT' | 'CHANGE_ADDRESS' | 'RETURN' | null>(null);
   readonly choiceDate = signal('');
   readonly choiceAddress = signal('');
