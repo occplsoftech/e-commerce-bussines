@@ -128,6 +128,7 @@ export class PortalLayout {
     { path: '/shipments', label: 'Shipments', icon: 'local_shipping' },
     { path: '/customers', label: 'My customers', icon: 'group' },
     { path: '/wallet', label: 'Wallet', icon: 'account_balance_wallet' },
+    { path: '/invoices', label: 'Invoices', icon: 'receipt_long' },
     { path: '/kyc', label: 'KYC', icon: 'verified_user' },
     { path: '/profile', label: 'Profile', icon: 'storefront' }
   ];
