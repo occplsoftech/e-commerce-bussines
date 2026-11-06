@@ -109,4 +109,51 @@ describe('BookingDetail', () => {
     expect(c.error()).toContain('already been collected');
     expect(c.cancelling()).toBe(false);
   });
+
+  it('shows the chosen pickup time and offers changing it only while the booking can still be changed', () => {
+    const fixture = create('BOOKED');
+    http.expectOne('/api/v1/customer-portal/bookings/b1/tracking').flush({ data: { available: false, events: [], retrievedAt: '' } });
+    const c = fixture.componentInstance;
+    c.booking.set({ ...c.booking()!, pickupDate: '2026-11-09', pickupSlot: 'Morning (9-12)', cancellable: false });
+    fixture.detectChanges();
+    const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text()).toContain('Morning (9-12)');
+    expect(text()).not.toContain('Change pickup time');
+
+    c.booking.set({ ...c.booking()!, cancellable: true });
+    fixture.detectChanges();
+    expect(text()).toContain('Change pickup time');
+  });
+
+  it('saves the new date and slot and reloads the booking', () => {
+    const fixture = create('BOOKED');
+    http.expectOne('/api/v1/customer-portal/bookings/b1/tracking').flush({ data: { available: false, events: [], retrievedAt: '' } });
+    const c = fixture.componentInstance;
+    c.booking.set({ ...c.booking()!, cancellable: true, pickupSlots: ['Morning (9-12)'] });
+    c.startReschedule(c.booking()!);
+    expect(c.newDate()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    c.newDate.set('2026-11-10');
+    c.newSlot.set('');
+
+    c.saveReschedule();
+    const post = http.expectOne('/api/v1/customer-portal/bookings/b1/reschedule');
+    expect(post.request.body).toEqual({ date: '2026-11-10', slot: null });
+    post.flush({ data: {} });
+    http.expectOne('/api/v1/customer-portal/bookings/b1').flush({ data: detail('BOOKED') });
+    expect(c.rescheduling()).toBe(false);
+    expect(c.pickupMessage()).toContain('Pickup time updated');
+  });
+
+  it('keeps the form open and shows the reason when the change is refused', async () => {
+    const fixture = create('BOOKED');
+    http.expectOne('/api/v1/customer-portal/bookings/b1/tracking').flush({ data: { available: false, events: [], retrievedAt: '' } });
+    const c = fixture.componentInstance;
+    c.startReschedule(c.booking()!);
+    c.saveReschedule();
+    http.expectOne('/api/v1/customer-portal/bookings/b1/reschedule').flush(
+      { message: 'This parcel has already been collected, so the pickup time can no longer be changed.' }, { status: 422, statusText: 'x' });
+    await new Promise((r) => setTimeout(r, 20));
+    expect(c.pickupError()).toContain('already been collected');
+    expect(c.rescheduling()).toBe(true);
+  });
 });

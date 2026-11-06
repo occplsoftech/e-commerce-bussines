@@ -249,6 +249,10 @@ export interface BookingDetail {
   deliveryStatus?: DeliveryInfo | null;
   /** The customer may cancel it now (OCCPL Network, parcel not yet collected). */
   cancellable?: boolean;
+  /** The pickup date (YYYY-MM-DD) and slot the customer chose, and the slots they may pick from. */
+  pickupDate?: string | null;
+  pickupSlot?: string | null;
+  pickupSlots?: string[];
 }
 
 export interface TrackingEvent { at: string | null; status: string | null; location: string | null; description: string | null; }
