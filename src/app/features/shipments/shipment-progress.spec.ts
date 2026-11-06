@@ -68,4 +68,26 @@ describe('shipment progress', () => {
     expect(states(shipmentProgress(booking({ status: 'OUTCOME_UNKNOWN' }), null)))
       .toEqual(['placed:done', 'booked:warn', 'picked:todo', 'transit:todo', 'ofd:todo', 'delivered:todo']);
   });
+
+  const failed = { attempts: 1, reason: 'Receiver not available', note: null, at: '2026-11-06T11:41:00Z', open: true, returnFlagged: false,
+    choice: null, choiceLabel: null, choiceDate: null, receiverAddress: null, receiverPhone: null };
+
+  it('shows a red "Delivery failed" step instead of "Out for delivery" while a failed attempt waits', () => {
+    const steps = shipmentProgress(booking({ deliveryIssue: failed }), tracking('In scan', [
+      ['Out for delivery', '2026-11-06T11:00:00Z'], ['In scan', '2026-11-06T11:41:00Z']]));
+    expect(states(steps)).toEqual(['placed:done', 'booked:done', 'picked:done', 'transit:done', 'ofd:bad', 'delivered:todo']);
+    const ofd = steps.find((x) => x.key === 'ofd')!;
+    expect(ofd.label).toBe('Delivery failed');
+    expect(ofd.note).toContain('Receiver not available');
+  });
+
+  it('notes the customer\'s answer on the failed step, and goes back to normal once the case is closed', () => {
+    const answered = shipmentProgress(booking({ deliveryIssue: { ...failed, attempts: 2, choice: 'REATTEMPT', choiceLabel: 'Deliver again' } }),
+      tracking('In scan', [['In scan', '2026-11-06T11:41:00Z']]));
+    expect(answered.find((x) => x.key === 'ofd')!.note).toBe('Receiver not available · attempt 2 · you asked: Deliver again');
+
+    const delivered = shipmentProgress(booking({ deliveryIssue: { ...failed, open: false } }),
+      tracking('Delivered', [['Delivered', '2026-11-07T10:00:00Z']]));
+    expect(delivered.find((x) => x.key === 'ofd')!.label).toBe('Out for delivery');
+  });
 });

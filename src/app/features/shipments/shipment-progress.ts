@@ -85,6 +85,20 @@ export function shipmentProgress(b: BookingDetail, t: TrackingView | null | unde
   if (topRank === RANK.BOOKED && !ended) {
     steps[1] = { ...steps[1], state: 'current', note: 'Waiting for pickup' };
   }
+  // A failed delivery attempt waiting for an answer: the parcel is back at the branch, so "Out for delivery" is not where it is.
+  // The delivery step turns red with the reason; the steps before it were reached.
+  const issue = b.deliveryIssue;
+  if (issue?.open && !ended && top !== 'DELIVERED') {
+    const note = (issue.reason ?? 'Not delivered') + (issue.attempts > 1 ? ` · attempt ${issue.attempts}` : '')
+      + (issue.choiceLabel ? ` · you asked: ${issue.choiceLabel}` : '');
+    for (let i = 0; i < steps.length; i++) {
+      const s = steps[i];
+      if (s.key === 'picked' || s.key === 'transit') steps[i] = { ...s, state: 'done', note: undefined };
+      else if (s.key === 'ofd') steps[i] = { ...s, label: 'Delivery failed', icon: 'error', state: 'bad', at: issue.at ?? s.at, note };
+      else if (s.key === 'delivered') steps[i] = { ...s, state: 'todo', at: null };
+    }
+    if (steps[1]?.note === 'Waiting for pickup') steps[1] = { ...steps[1], state: 'done', note: undefined };
+  }
   return steps;
 }
 
