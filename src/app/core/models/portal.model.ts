@@ -253,6 +253,15 @@ export interface BookingDetail {
   pickupDate?: string | null;
   pickupSlot?: string | null;
   pickupSlots?: string[];
+  /** The last failed delivery attempt and what the customer chose; null when none failed. */
+  deliveryIssue?: DeliveryIssue | null;
+}
+
+/** A failed delivery attempt: why, how many, and what the customer chose (REATTEMPT, CHANGE_ADDRESS, RETURN). */
+export interface DeliveryIssue {
+  attempts: number; reason: string | null; note: string | null; at: string | null; open: boolean; returnFlagged: boolean;
+  choice: 'REATTEMPT' | 'CHANGE_ADDRESS' | 'RETURN' | null; choiceLabel: string | null; choiceDate: string | null;
+  receiverAddress: string | null; receiverPhone: string | null;
 }
 
 export interface TrackingEvent { at: string | null; status: string | null; location: string | null; description: string | null; }

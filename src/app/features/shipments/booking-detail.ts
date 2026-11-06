@@ -128,6 +128,46 @@ function isoDate(days: number): string {
           </div>
 
           <div class="col">
+            @if (b.deliveryIssue; as d) {
+              <article class="app-card box issuebox" [class.issuebox--done]="!d.open">
+                <h2 class="text-h2">{{ d.open ? 'Delivery attempt failed' : 'Earlier delivery attempt' }}</h2>
+                <p class="issue__why"><strong>{{ d.reason || 'Not delivered' }}</strong>@if (d.note) { · {{ d.note }} }
+                  @if (d.at) { <span class="text-caption"> · {{ d.at | date: 'd MMM, h:mm a' }}</span> } · attempt {{ d.attempts }}</p>
+                @if (d.open && d.choice) {
+                  <p class="alert alert--ok">You asked: <strong>{{ d.choiceLabel }}</strong>@if (d.choiceDate) { on {{ d.choiceDate | date: 'EEE, d MMM' }} }.
+                    The branch will act on it. You can change your answer until then.</p>
+                }
+                @if (d.open) {
+                  @if (!choosing()) {
+                    <div class="cancelbox__actions">
+                      <button class="btn btn--primary" type="button" (click)="startChoice('REATTEMPT', d)"><ecb-icon name="replay" /> Deliver again</button>
+                      <button class="btn btn--ghost" type="button" (click)="startChoice('CHANGE_ADDRESS', d)"><ecb-icon name="edit_location" /> New address</button>
+                      <button class="btn btn--ghost" type="button" (click)="startChoice('RETURN', d)"><ecb-icon name="undo" /> Return to me</button>
+                    </div>
+                  } @else {
+                    @switch (choosing()) {
+                      @case ('REATTEMPT') {
+                        <label class="field"><span>Deliver again on</span>
+                          <input type="date" [min]="minDate()" [max]="isoDays(7)" [value]="choiceDate()" (input)="choiceDate.set($any($event.target).value)" /></label>
+                      }
+                      @case ('CHANGE_ADDRESS') {
+                        <label class="field field--wide"><span>New delivery address (same pincode)</span>
+                          <textarea rows="2" maxlength="500" [value]="choiceAddress()" (input)="choiceAddress.set($any($event.target).value)"></textarea></label>
+                        <label class="field"><span>Receiver's mobile (optional)</span>
+                          <input type="tel" maxlength="14" [value]="choicePhone()" (input)="choicePhone.set($any($event.target).value)" /></label>
+                      }
+                      @case ('RETURN') { <p class="alert alert--warn">The shipment will be sent back to the pickup address. Return charges may apply.</p> }
+                    }
+                    <div class="cancelbox__actions">
+                      <button class="btn btn--primary" type="button" (click)="sendChoice()" [disabled]="sendingChoice() || !choiceReady()">{{ sendingChoice() ? 'Sending…' : 'Confirm' }}</button>
+                      <button class="btn btn--ghost" type="button" (click)="choosing.set(null)" [disabled]="sendingChoice()">Back</button>
+                    </div>
+                  }
+                }
+                @if (choiceMessage()) { <p class="alert alert--ok" role="status">{{ choiceMessage() }}</p> }
+                @if (choiceError()) { <p class="alert alert--error" role="alert">{{ choiceError() }}</p> }
+              </article>
+            }
             @if (b.status === 'BOOKED' && (b.cancellable || b.pickupDate)) {
               <article class="app-card box pickupbox">
                 <div class="row">
@@ -206,6 +246,11 @@ function isoDate(days: number): string {
     .back ecb-icon { font-size:18px; }
     .awb { margin-left:12px; font:600 .5em ui-monospace, SFMono-Regular, Menlo, monospace; color:var(--content-muted); vertical-align:middle; }
     .progress { margin-bottom:0; }
+    .issuebox { border:1px solid var(--danger, #b3123a); }
+    .issuebox--done { border-color:var(--surface-border); }
+    .issue__why { margin:0; font:500 14px var(--font-sans); }
+    .field--wide { max-width:none; }
+    .field textarea { padding:10px 12px; border:1px solid var(--surface-border); border-radius:var(--r-field); background:var(--surface); color:inherit; font:400 14px var(--font-sans); resize:vertical; }
     .pickup__now { margin:0; font:500 15px var(--font-sans); }
     .pickup__form { display:flex; gap:12px; flex-wrap:wrap; }
     .pickup__form select { padding:10px 12px; border:1px solid var(--surface-border); border-radius:var(--r-field); background:var(--surface); color:inherit; font:400 14px var(--font-sans); }
@@ -243,6 +288,55 @@ export class BookingDetail implements OnInit {
   readonly trackingError = signal('Tracking could not be loaded. Please try again.');
   readonly labelError = signal<string | null>(null);
   readonly downloading = signal(false);
+  readonly choosing = signal<'REATTEMPT' | 'CHANGE_ADDRESS' | 'RETURN' | null>(null);
+  readonly choiceDate = signal('');
+  readonly choiceAddress = signal('');
+  readonly choicePhone = signal('');
+  readonly sendingChoice = signal(false);
+  readonly choiceMessage = signal('');
+  readonly choiceError = signal('');
+  protected isoDays(days: number): string { return isoDate(days); }
+
+  startChoice(kind: 'REATTEMPT' | 'CHANGE_ADDRESS' | 'RETURN', d: { choiceDate: string | null; receiverAddress: string | null; receiverPhone: string | null }): void {
+    this.choiceMessage.set('');
+    this.choiceError.set('');
+    this.choiceDate.set(d.choiceDate ?? isoDate(1));
+    this.choiceAddress.set(kind === 'CHANGE_ADDRESS' ? (d.receiverAddress ?? '') : '');
+    this.choicePhone.set(kind === 'CHANGE_ADDRESS' ? (d.receiverPhone ?? '') : '');
+    this.choosing.set(kind);
+  }
+
+  choiceReady(): boolean {
+    switch (this.choosing()) {
+      case 'REATTEMPT': return !!this.choiceDate();
+      case 'CHANGE_ADDRESS': return this.choiceAddress().trim().length >= 10;
+      case 'RETURN': return true;
+      default: return false;
+    }
+  }
+
+  sendChoice(): void {
+    const kind = this.choosing();
+    if (!kind) return;
+    this.sendingChoice.set(true);
+    this.choiceError.set('');
+    const body = kind === 'REATTEMPT' ? { choice: kind, date: this.choiceDate() }
+      : kind === 'CHANGE_ADDRESS' ? { choice: kind, address: this.choiceAddress().trim(), phone: this.choicePhone().trim() || null }
+      : { choice: kind };
+    this.portal.chooseDelivery(this.bookingId(), body).subscribe({
+      next: () => {
+        this.sendingChoice.set(false);
+        this.choosing.set(null);
+        this.choiceMessage.set('Thank you. We have passed this to the branch.');
+        this.portal.booking(this.bookingId()).subscribe((b) => this.booking.set(b));
+      },
+      error: async (e: HttpErrorResponse) => {
+        this.sendingChoice.set(false);
+        this.choiceError.set(await errorMessage(e, 'Your answer could not be sent. Please try again.'));
+      }
+    });
+  }
+
   readonly rescheduling = signal(false);
   readonly savingPickup = signal(false);
   readonly newDate = signal('');

@@ -156,4 +156,56 @@ describe('BookingDetail', () => {
     expect(c.pickupError()).toContain('already been collected');
     expect(c.rescheduling()).toBe(true);
   });
+
+  const issue = { attempts: 1, reason: 'Receiver not available', note: 'door locked', at: '2026-11-06T10:00:00Z', open: true,
+    returnFlagged: false, choice: null, choiceLabel: null, choiceDate: null, receiverAddress: 'B-2', receiverPhone: '9123456780' };
+
+  it('shows a failed delivery with its reason and the three choices', () => {
+    const fixture = create('BOOKED');
+    http.expectOne('/api/v1/customer-portal/bookings/b1/tracking').flush({ data: { available: false, events: [], retrievedAt: '' } });
+    fixture.componentInstance.booking.set({ ...fixture.componentInstance.booking()!, deliveryIssue: issue as never });
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Delivery attempt failed');
+    expect(text).toContain('Receiver not available');
+    expect(text).toContain('Deliver again');
+    expect(text).toContain('New address');
+    expect(text).toContain('Return to me');
+  });
+
+  it('sends "deliver again" with the chosen date, and a new address with the phone', () => {
+    const fixture = create('BOOKED');
+    http.expectOne('/api/v1/customer-portal/bookings/b1/tracking').flush({ data: { available: false, events: [], retrievedAt: '' } });
+    const c = fixture.componentInstance;
+    c.startChoice('REATTEMPT', issue);
+    c.choiceDate.set('2026-11-09');
+    c.sendChoice();
+    const a = http.expectOne('/api/v1/customer-portal/bookings/b1/delivery-choice');
+    expect(a.request.body).toEqual({ choice: 'REATTEMPT', date: '2026-11-09' });
+    a.flush({ data: {} });
+    http.expectOne('/api/v1/customer-portal/bookings/b1').flush({ data: detail('BOOKED') });
+    expect(c.choiceMessage()).toContain('passed this to the branch');
+
+    c.startChoice('CHANGE_ADDRESS', issue);
+    expect(c.choiceAddress()).toBe('B-2');
+    c.choiceAddress.set(' Flat 4, MG Road, Delhi ');
+    c.sendChoice();
+    const b = http.expectOne('/api/v1/customer-portal/bookings/b1/delivery-choice');
+    expect(b.request.body).toEqual({ choice: 'CHANGE_ADDRESS', address: 'Flat 4, MG Road, Delhi', phone: '9123456780' });
+    b.flush({ data: {} });
+    http.expectOne('/api/v1/customer-portal/bookings/b1').flush({ data: detail('BOOKED') });
+  });
+
+  it('keeps the choice open and shows the reason when the answer is refused', async () => {
+    const fixture = create('BOOKED');
+    http.expectOne('/api/v1/customer-portal/bookings/b1/tracking').flush({ data: { available: false, events: [], retrievedAt: '' } });
+    const c = fixture.componentInstance;
+    c.startChoice('RETURN', issue);
+    c.sendChoice();
+    http.expectOne('/api/v1/customer-portal/bookings/b1/delivery-choice').flush(
+      { message: 'There is no failed delivery waiting for your answer on this shipment.' }, { status: 422, statusText: 'x' });
+    await new Promise((r) => setTimeout(r, 20));
+    expect(c.choiceError()).toContain('no failed delivery');
+    expect(c.choosing()).toBe('RETURN');
+  });
 });

@@ -73,6 +73,11 @@ export class PortalService {
   deletePhoto(bookingId: string, photoId: string): Observable<void> { return this.api.delete(API.portal.bookingPhoto(bookingId, photoId)); }
 
   /** Changes the pickup date and slot of the customer's own booking before the parcel is collected. */
+  /** Answers a failed delivery attempt: deliver again on a date, deliver to a new address (and phone), or return it. */
+  chooseDelivery(bookingId: string, body: { choice: string; date?: string | null; address?: string | null; phone?: string | null }): Observable<unknown> {
+    return this.api.post<unknown>(API.portal.bookingDeliveryChoice(bookingId), body);
+  }
+
   reschedulePickup(bookingId: string, date: string, slot: string): Observable<unknown> { return this.api.post<unknown>(API.portal.bookingReschedule(bookingId), { date, slot: slot || null }); }
 
   /** Cancels the customer's own booking before pickup; a wallet payment is credited back. */
