@@ -17,6 +17,12 @@ import { BookingPhotos } from '@features/booking/booking-photos';
 /** One booking: its status flow, who, what, the frozen price, live tracking history from the courier and the label download. */
 import { CourierLogo } from '@shared/components/courier-logo';
 
+/** Today plus {@code days}, as YYYY-MM-DD in India time (what the date input and the server both use). */
+function isoDate(days: number): string {
+  const d = new Date(Date.now() + days * 86_400_000);
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+}
+
 @Component({
   selector: 'ecb-booking-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -122,6 +128,35 @@ import { CourierLogo } from '@shared/components/courier-logo';
           </div>
 
           <div class="col">
+            @if (b.status === 'BOOKED' && (b.cancellable || b.pickupDate)) {
+              <article class="app-card box pickupbox">
+                <div class="row">
+                  <h2 class="text-h2">Pickup time</h2>
+                  @if (b.cancellable && !rescheduling()) {
+                    <button class="btn btn--ghost" type="button" (click)="startReschedule(b)"><ecb-icon name="event" /> Change pickup time</button>
+                  }
+                </div>
+                @if (!rescheduling()) {
+                  <p class="pickup__now">@if (b.pickupDate) { <strong>{{ b.pickupDate | date: 'EEE, d MMM yyyy' }}</strong>@if (b.pickupSlot) { · {{ b.pickupSlot }} } } @else { No time chosen. Our branch will contact you to arrange it. }</p>
+                } @else {
+                  <div class="pickup__form">
+                    <label class="field"><span>Pickup date</span>
+                      <input type="date" [min]="minDate()" [max]="maxDate()" [value]="newDate()" (input)="newDate.set($any($event.target).value)" /></label>
+                    <label class="field"><span>Time slot</span>
+                      <select [value]="newSlot()" (change)="newSlot.set($any($event.target).value)">
+                        <option value="">Any time</option>
+                        @for (s of b.pickupSlots ?? []; track s) { <option [value]="s" [selected]="s === newSlot()">{{ s }}</option> }
+                      </select></label>
+                  </div>
+                  <div class="cancelbox__actions">
+                    <button class="btn btn--primary" type="button" (click)="saveReschedule()" [disabled]="savingPickup() || !newDate()">{{ savingPickup() ? 'Saving…' : 'Save pickup time' }}</button>
+                    <button class="btn btn--ghost" type="button" (click)="rescheduling.set(false)" [disabled]="savingPickup()">Keep current time</button>
+                  </div>
+                }
+                @if (pickupMessage()) { <p class="alert alert--ok" role="status">{{ pickupMessage() }}</p> }
+                @if (pickupError()) { <p class="alert alert--error" role="alert">{{ pickupError() }}</p> }
+              </article>
+            }
             <article class="app-card box">
               <h2 class="text-h2">Route</h2>
               <div class="parties">
@@ -171,6 +206,9 @@ import { CourierLogo } from '@shared/components/courier-logo';
     .back ecb-icon { font-size:18px; }
     .awb { margin-left:12px; font:600 .5em ui-monospace, SFMono-Regular, Menlo, monospace; color:var(--content-muted); vertical-align:middle; }
     .progress { margin-bottom:0; }
+    .pickup__now { margin:0; font:500 15px var(--font-sans); }
+    .pickup__form { display:flex; gap:12px; flex-wrap:wrap; }
+    .pickup__form select { padding:10px 12px; border:1px solid var(--surface-border); border-radius:var(--r-field); background:var(--surface); color:inherit; font:400 14px var(--font-sans); }
     .cancelbox { border:1px solid var(--occpl-color-primary); }
     .cancelbox__actions { display:flex; gap:10px; flex-wrap:wrap; }
     .field { display:flex; flex-direction:column; gap:4px; font:500 13px var(--font-sans); max-width:420px; }
@@ -205,6 +243,41 @@ export class BookingDetail implements OnInit {
   readonly trackingError = signal('Tracking could not be loaded. Please try again.');
   readonly labelError = signal<string | null>(null);
   readonly downloading = signal(false);
+  readonly rescheduling = signal(false);
+  readonly savingPickup = signal(false);
+  readonly newDate = signal('');
+  readonly newSlot = signal('');
+  readonly pickupMessage = signal('');
+  readonly pickupError = signal('');
+  /** Today and 14 days on, as YYYY-MM-DD in the customer's own date (India). */
+  readonly minDate = () => isoDate(0);
+  readonly maxDate = () => isoDate(14);
+
+  startReschedule(b: Detail): void {
+    this.pickupMessage.set('');
+    this.pickupError.set('');
+    this.newDate.set(b.pickupDate ?? isoDate(0));
+    this.newSlot.set(b.pickupSlot ?? '');
+    this.rescheduling.set(true);
+  }
+
+  saveReschedule(): void {
+    this.savingPickup.set(true);
+    this.pickupError.set('');
+    this.portal.reschedulePickup(this.bookingId(), this.newDate(), this.newSlot()).subscribe({
+      next: () => {
+        this.savingPickup.set(false);
+        this.rescheduling.set(false);
+        this.pickupMessage.set('Pickup time updated. The branch will collect on the new date.');
+        this.portal.booking(this.bookingId()).subscribe((b) => this.booking.set(b));
+      },
+      error: async (e: HttpErrorResponse) => {
+        this.savingPickup.set(false);
+        this.pickupError.set(await errorMessage(e, 'The pickup time could not be changed. Please try again.'));
+      }
+    });
+  }
+
   readonly confirmingCancel = signal(false);
   readonly cancelling = signal(false);
   readonly cancelReason = signal('');

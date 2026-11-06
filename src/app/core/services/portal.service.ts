@@ -69,6 +69,9 @@ export class PortalService {
   photoFile(bookingId: string, photoId: string): Observable<Blob> { return this.api.blob(API.portal.bookingPhoto(bookingId, photoId) + '/file'); }
   deletePhoto(bookingId: string, photoId: string): Observable<void> { return this.api.delete(API.portal.bookingPhoto(bookingId, photoId)); }
 
+  /** Changes the pickup date and slot of the customer's own booking before the parcel is collected. */
+  reschedulePickup(bookingId: string, date: string, slot: string): Observable<unknown> { return this.api.post<unknown>(API.portal.bookingReschedule(bookingId), { date, slot: slot || null }); }
+
   /** Cancels the customer's own booking before pickup; a wallet payment is credited back. */
   cancelBooking(bookingId: string, reason?: string): Observable<unknown> { return this.api.post<unknown>(API.portal.bookingCancel(bookingId), { reason: reason?.trim() || null }); }
 
