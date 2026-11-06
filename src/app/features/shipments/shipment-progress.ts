@@ -37,6 +37,11 @@ export function shipmentProgress(b: BookingDetail, t: TrackingView | null | unde
     steps.push({ key: 'booked', label: 'Not booked', icon: 'error', state: 'bad', at: null, note: b.message ?? undefined });
     return steps;
   }
+  if (b.status === 'CANCELLED') {
+    steps.push({ key: 'booked', label: 'Booked', icon: 'check_circle', state: 'done', at: b.bookedAt ?? b.createdAt });
+    steps.push({ key: 'cancelled', label: 'Cancelled', icon: 'cancel', state: 'bad', at: null, note: 'You cancelled this booking before pickup.' });
+    return steps;
+  }
   if (b.status !== 'BOOKED') {
     const unknown = b.status === 'OUTCOME_UNKNOWN';
     steps.push({ key: 'booked', label: unknown ? 'Awaiting confirmation' : 'Booking with courier', icon: 'hourglass_top',

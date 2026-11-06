@@ -130,7 +130,7 @@ export interface RateQuote {
   unavailable: UnavailableProvider[];
 }
 
-export type BookingStatus = 'PENDING' | 'SUBMITTING' | 'BOOKED' | 'FAILED' | 'OUTCOME_UNKNOWN';
+export type BookingStatus = 'PENDING' | 'SUBMITTING' | 'BOOKED' | 'FAILED' | 'OUTCOME_UNKNOWN' | 'CANCELLED';
 
 /** Shipment history filter; an empty value means "all". Dates are yyyy-MM-dd, both inclusive. */
 export interface BookingFilter {
@@ -247,6 +247,8 @@ export interface BookingDetail {
   bookedAt: string | null;
   createdAt: string;
   deliveryStatus?: DeliveryInfo | null;
+  /** The customer may cancel it now (OCCPL Network, parcel not yet collected). */
+  cancellable?: boolean;
 }
 
 export interface TrackingEvent { at: string | null; status: string | null; location: string | null; description: string | null; }

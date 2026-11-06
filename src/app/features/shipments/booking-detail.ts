@@ -33,6 +33,9 @@ import { CourierLogo } from '@shared/components/courier-logo';
             @if (b.status === 'BOOKED' || b.status === 'OUTCOME_UNKNOWN') {
               <button class="btn btn--ghost" type="button" (click)="printLabel()"><ecb-icon name="print" /> Print label</button>
             }
+            @if (b.cancellable) {
+              <button class="btn btn--ghost" type="button" (click)="confirmingCancel.set(true)" [disabled]="confirmingCancel() || cancelling()"><ecb-icon name="cancel" /> Cancel booking</button>
+            }
             @if (b.labelDownloadable) {
               <button class="btn btn--primary" type="button" (click)="downloadLabel(b)" [disabled]="downloading()">
                 <ecb-icon name="print" /> {{ downloading() ? 'Preparing…' : 'Download label' }}
@@ -42,6 +45,19 @@ import { CourierLogo } from '@shared/components/courier-logo';
         }
       </div>
 
+      @if (confirmingCancel()) {
+        <article class="app-card box cancelbox" role="alertdialog" aria-labelledby="cancel-title">
+          <h2 id="cancel-title" class="text-h2">Cancel this booking?</h2>
+          <p class="text-caption">The pickup is called off and the tracking number is released. If you paid from your wallet, the amount goes back to it. This cannot be undone once the parcel is collected.</p>
+          <label class="field"><span>Reason (optional)</span>
+            <input type="text" maxlength="150" [value]="cancelReason()" (input)="cancelReason.set($any($event.target).value)" placeholder="e.g. wrong address" /></label>
+          <div class="cancelbox__actions">
+            <button class="btn btn--primary" type="button" (click)="cancelBooking()" [disabled]="cancelling()">{{ cancelling() ? 'Cancelling…' : 'Yes, cancel booking' }}</button>
+            <button class="btn btn--ghost" type="button" (click)="confirmingCancel.set(false)" [disabled]="cancelling()">Keep booking</button>
+          </div>
+        </article>
+      }
+      @if (cancelMessage()) { <p class="alert alert--ok" role="status">{{ cancelMessage() }}</p> }
       @if (error()) { <p class="alert alert--error" role="alert">{{ error() }}</p> }
       @if (labelError()) { <p class="alert alert--warn" role="alert">{{ labelError() }}</p> }
 
@@ -67,6 +83,8 @@ import { CourierLogo } from '@shared/components/courier-logo';
               </div>
               @if (b.status === 'OUTCOME_UNKNOWN') {
                 <p class="alert alert--warn">The courier may have accepted this booking. Our team is confirming it — please do not book it again.</p>
+              } @else if (b.status === 'CANCELLED') {
+                <p class="alert alert--warn">This booking was cancelled before pickup. Nothing is payable.</p>
               } @else if (b.status === 'FAILED') {
                 <p class="alert alert--error">Nothing was booked and nothing is payable.@if (b.message) { {{ b.message }} }</p>
               }
@@ -153,6 +171,10 @@ import { CourierLogo } from '@shared/components/courier-logo';
     .back ecb-icon { font-size:18px; }
     .awb { margin-left:12px; font:600 .5em ui-monospace, SFMono-Regular, Menlo, monospace; color:var(--content-muted); vertical-align:middle; }
     .progress { margin-bottom:0; }
+    .cancelbox { border:1px solid var(--occpl-color-primary); }
+    .cancelbox__actions { display:flex; gap:10px; flex-wrap:wrap; }
+    .field { display:flex; flex-direction:column; gap:4px; font:500 13px var(--font-sans); max-width:420px; }
+    .field input { padding:10px 12px; border:1px solid var(--surface-border); border-radius:var(--r-field); background:var(--surface); color:inherit; font:400 14px var(--font-sans); }
     .layout { display:grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap:16px; align-items:start; }
     .col { display:flex; flex-direction:column; gap:16px; min-width:0; }
     .box { padding:20px; display:flex; flex-direction:column; gap:12px; }
@@ -183,6 +205,28 @@ export class BookingDetail implements OnInit {
   readonly trackingError = signal('Tracking could not be loaded. Please try again.');
   readonly labelError = signal<string | null>(null);
   readonly downloading = signal(false);
+  readonly confirmingCancel = signal(false);
+  readonly cancelling = signal(false);
+  readonly cancelReason = signal('');
+  readonly cancelMessage = signal('');
+
+  cancelBooking(): void {
+    this.cancelling.set(true);
+    this.error.set(null);
+    this.portal.cancelBooking(this.bookingId(), this.cancelReason()).subscribe({
+      next: () => {
+        this.cancelling.set(false);
+        this.confirmingCancel.set(false);
+        this.cancelMessage.set('Booking cancelled. If you paid from your wallet, the amount has been credited back.');
+        this.portal.booking(this.bookingId()).subscribe((b) => this.booking.set(b));
+      },
+      error: async (e: HttpErrorResponse) => {
+        this.cancelling.set(false);
+        this.confirmingCancel.set(false);
+        this.error.set(await errorMessage(e, 'The booking could not be cancelled. Please try again.'));
+      }
+    });
+  }
   readonly showLabel = signal(false);
   private readonly sheet = viewChild(LabelSheet);
 

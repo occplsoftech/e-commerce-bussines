@@ -30,6 +30,7 @@ export const API = {
     bookingTracking: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/tracking`,
     bookingPhotos: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/photos`,
     bookingPhoto: (id: string, photoId: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/photos/${encodeURIComponent(photoId)}`,
+    bookingCancel: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/cancel`,
     bookingLabel: (id: string) => `/customer-portal/bookings/${encodeURIComponent(id)}/label`,
     shipmentTracking: (id: string) => `/customer-portal/shipments/${encodeURIComponent(id)}/tracking`,
     courierLogos: '/customer-portal/courier-logos',
