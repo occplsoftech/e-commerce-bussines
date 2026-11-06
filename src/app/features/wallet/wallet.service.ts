@@ -63,6 +63,9 @@ export class WalletService {
 
   wallet(): Observable<Wallet> { return this.api.get<Wallet>(API.portal.wallet); }
 
+  /** The statement for a period (YYYY-MM-DD, inclusive) as an Excel file. */
+  statement(from: string, to: string): Observable<Blob> { return this.api.blob(API.portal.walletStatement, { from: from || null, to: to || null }); }
+
   transactions(page: number, size = 20): Observable<Page<WalletEntry>> {
     return this.api.get<Page<WalletEntry>>(API.portal.walletTransactions, { page, size });
   }

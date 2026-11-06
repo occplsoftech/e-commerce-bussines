@@ -8,6 +8,7 @@ import { PortalService } from '@core/services/portal.service';
 import { BookingFilter, BookingSummary, DeliveryStage, Page } from '@core/models/portal.model';
 import { DELIVERY_STAGE_VIEW, shipmentStatusView } from '@shared/utils/booking-status';
 import { CourierLogo } from '@shared/components/courier-logo';
+import { errorMessage, saveBlob } from '@shared/utils/http-error';
 
 /** Booking statuses; "Submitting" covers both of the server's in-flight states. */
 const STATUSES: { value: string; label: string }[] = [
@@ -37,10 +38,12 @@ const EMPTY: BookingFilter = { status: '', delivery: '', provider: '', from: '',
           <p class="text-caption">Bookings you made here. Open one to track it or download its label.</p>
         </div>
         <div class="page__actions">
+          <button type="button" class="btn btn--ghost" (click)="exportExcel()" [disabled]="exporting()"><ecb-icon name="download" /> {{ exporting() ? 'Preparing…' : 'Export to Excel' }}</button>
           <a class="btn btn--primary" routerLink="/book"><ecb-icon name="add" /> Book a shipment</a>
         </div>
       </div>
 
+      @if (exportError()) { <p class="alert alert--error" role="alert">{{ exportError() }}</p> }
       <form class="app-card filters" role="search" aria-label="Filter shipments" (submit)="$event.preventDefault()">
         <div class="field">
           <label for="status-filter">Status</label>
@@ -179,6 +182,18 @@ export class Shipments implements OnInit {
   readonly today = isoDate(new Date());
   readonly page = signal<Page<BookingSummary> | null>(null);
   readonly filter = signal<BookingFilter>(EMPTY);
+  readonly exporting = signal(false);
+  readonly exportError = signal('');
+
+  /** Every shipment matching the current filters, as an Excel file. */
+  exportExcel(): void {
+    this.exporting.set(true);
+    this.exportError.set('');
+    this.portal.exportBookings(this.filter()).subscribe({
+      next: (b) => { this.exporting.set(false); saveBlob(b, `shipments-${new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date())}.xlsx`); },
+      error: async (e: HttpErrorResponse) => { this.exporting.set(false); this.exportError.set(await errorMessage(e, 'The export could not be prepared.')); }
+    });
+  }
   readonly couriers = signal<{ code: string; name: string }[]>([]);
   readonly filtered = computed(() => Object.values(this.filter()).some((v) => !!v));
   readonly error = signal<string | null>(null);

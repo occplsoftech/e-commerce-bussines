@@ -49,6 +49,9 @@ export class PortalService {
     return this.api.get<Page<BookingSummary>>(API.portal.bookings, { ...filter, page, size });
   }
 
+  /** Every shipment matching the filter, as an Excel file. */
+  exportBookings(filter: BookingFilter): Observable<Blob> { return this.api.blob(API.portal.bookingsExport, { ...filter }); }
+
   /** The couriers this customer has booked with, for the history filter. */
   bookingCouriers(): Observable<{ code: string; name: string }[]> {
     return this.api.get<{ code: string; name: string }[]>(API.portal.bookingCouriers);
