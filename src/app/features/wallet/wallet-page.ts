@@ -132,13 +132,14 @@ type Tab = 'statement' | 'requests';
             } @else {
               <div class="scroll">
                 <table>
-                  <thead><tr><th>Date</th><th>Details</th><th class="num">Amount</th><th class="num bal">Balance</th></tr></thead>
+                  <thead><tr><th>Date</th><th>Details</th><th class="num prev">Previous balance</th><th class="num">Amount</th><th class="num bal">Balance</th></tr></thead>
                   <tbody>
                     @for (e of entries()!.content; track e.id) {
                       <tr>
                         <td>{{ e.createdAt | date: 'd MMM y, h:mm a' }}</td>
                         <td><strong>{{ e.subTransactionTypeLabel }}</strong>
                           <span class="sub">{{ e.transactionNo }}@if (e.remarks) { · {{ e.remarks }} }</span></td>
+                        <td class="num num-tabular prev">{{ e.balanceBefore | currency: w.currency : 'symbol' : '1.2-2' }}</td>
                         <td class="num num-tabular" [class.credit]="e.transactionType === 'CR'" [class.debit]="e.transactionType === 'DR'">
                           {{ e.transactionType === 'CR' ? '+' : '−' }}{{ e.amount | currency: w.currency : 'symbol' : '1.2-2' }}</td>
                         <td class="num num-tabular bal">{{ e.balanceAfter | currency: w.currency : 'symbol' : '1.2-2' }}</td>
@@ -233,7 +234,7 @@ type Tab = 'statement' | 'requests';
     table { width:100%; border-collapse:collapse; }
     th, td { padding:12px 16px; text-align:left; vertical-align:top; }
     .num { text-align:right; white-space:nowrap; }
-    @media (max-width: 40rem) { .bal { display:none; } th, td { padding:10px 12px; } }
+    @media (max-width: 40rem) { .bal, .prev { display:none; } th, td { padding:10px 12px; } }
     .sub { display:block; color:var(--content-muted); font-size:.85rem; }
     .credit { color:var(--success); font-weight:700; } .debit { color:var(--danger); font-weight:700; }
     .empty { margin:0; padding:28px 16px; text-align:center; color:var(--content-muted); }

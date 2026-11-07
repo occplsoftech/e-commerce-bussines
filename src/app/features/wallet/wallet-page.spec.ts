@@ -58,6 +58,16 @@ describe('WalletPage', () => {
     expect(text).toContain('Courier booking SHIPROCKET');
   });
 
+  it('shows the balance before and after each entry', () => {
+    const f = create({ entries: page([entry({})]) });
+    const el = f.nativeElement as HTMLElement;
+    const heads = Array.from(el.querySelectorAll('thead th')).map((th) => th.textContent?.trim());
+    expect(heads).toEqual(['Date', 'Details', 'Previous balance', 'Amount', 'Balance']);
+    const cells = Array.from(el.querySelectorAll('tbody tr:first-child td')).map((td) => td.textContent?.trim());
+    expect(cells[2]).toBe('₹750.50');
+    expect(cells[4]).toBe('₹1,250.50');
+  });
+
   it('says so when there are no transactions yet', () => {
     const f = create({ entries: page([]) });
     expect(f.nativeElement.textContent).toContain('No transactions yet');
