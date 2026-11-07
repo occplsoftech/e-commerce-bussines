@@ -88,7 +88,7 @@ const PERIOD_KEY = 'ecb.dashboard.period';
             <div class="kpi__label">Delivered on time@if (data()?.onTimeMeasured) { · of {{ data()!.onTimeMeasured }} }</div></div>
         </article>
         <a class="kpi kpi--link" [class.kpi--alert]="(data()?.needAttention ?? 0) > 0" style="--c:var(--occpl-color-amber)" href="#attention" (click)="scrollTo($event)">
-          <ecb-icon name="report" class="kpi__icon" />
+          <ecb-icon name="error" class="kpi__icon" />
           <div><div class="kpi__value num-tabular">{{ data() ? data()!.needAttention : '—' }}</div><div class="kpi__label">Need attention</div></div>
         </a>
       </div>
@@ -138,7 +138,7 @@ const PERIOD_KEY = 'ecb.dashboard.period';
               <ul>
                 @for (l of d.late; track l.bookingId) {
                   <li><a [routerLink]="['/shipments', l.bookingId]">
-                    <span><strong class="mono">{{ l.trackingNumber || 'Awaiting number' }}</strong> · {{ l.providerName }}@if (l.deliveryName) { · to {{ l.deliveryName }} }
+                    <span>@if (l.trackingNumber) { <strong class="mono">{{ l.trackingNumber }}</strong> } @else { <strong>Not collected yet</strong> } · {{ l.providerName }}@if (l.deliveryName) { · to {{ l.deliveryName }} }
                       <br><span class="text-caption">{{ l.lastStatus || 'No update yet' }} · due {{ l.promisedBy | date: 'd MMM' }}</span></span>
                     <span class="late">{{ l.daysLate }} {{ l.daysLate === 1 ? 'day' : 'days' }} late</span></a></li>
                 }
@@ -207,7 +207,7 @@ const PERIOD_KEY = 'ecb.dashboard.period';
     .kpi__icon { display:grid; place-items:center; width:46px; height:46px; border-radius:14px; background:var(--c); color:#fff; font-size:1.3rem; position:relative; z-index:1; }
     .kpi__value { font:800 1.7rem var(--font-display); color:var(--content-fg); }
     .kpi__label { font:600 .85rem var(--font-sans); color:var(--content-muted); }
-    .kpi--hero { grid-column:span 2; background:var(--occpl-gradient-brand); border-color:transparent; }
+    .kpi--hero { background:var(--occpl-gradient-brand); border-color:transparent; }
     .kpi--hero .kpi__icon { background:rgb(255 255 255 / 22%); }
     .kpi--hero .kpi__value, .kpi--hero .kpi__label { color:#fff; }
     .kpi--hero .kpi__value { font-size:2.4rem; }
@@ -216,7 +216,6 @@ const PERIOD_KEY = 'ecb.dashboard.period';
     .chart { padding:20px; display:flex; flex-direction:column; gap:12px; }
     .chart h2 { margin:0; }
     @media (max-width: 64rem) { .kpis { grid-template-columns:repeat(2, minmax(0, 1fr)); } .charts { grid-template-columns:minmax(0, 1fr); } }
-    @media (max-width: 36rem) { .kpi--hero { grid-column:auto; } }
     .period { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
     .period button { border:1px solid var(--surface-border); background:var(--occpl-color-surface); color:var(--content-fg); border-radius:999px;
       padding:7px 14px; font:600 13px var(--font-sans); cursor:pointer; }
