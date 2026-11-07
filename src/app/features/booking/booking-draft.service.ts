@@ -27,6 +27,8 @@ export interface ShipmentDraft {
   pickup: PartyDetails;
   delivery: PartyDetails;
   package: PackageDetails;
+  /** A return pickup of this delivered booking (OCCPL Network, prepaid). */
+  returnOfBookingId?: string | null;
 }
 
 const KEY = 'ecb.booking.draft';

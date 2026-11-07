@@ -67,6 +67,24 @@ describe('BookingDetail', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Download label');
   });
 
+  it('offers a return pickup only for a delivered booking that is not itself a return', () => {
+    const fixture = create('BOOKED');
+    http.expectOne('/api/v1/customer-portal/bookings/b1/tracking').flush({ data: { available: false, events: [], retrievedAt: '' } });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('Book a return pickup');
+
+    const delivered = { stage: 'DELIVERED', text: 'Delivered', location: null, at: null, checkedAt: null };
+    fixture.componentInstance.booking.set({ ...fixture.componentInstance.booking()!, deliveryStatus: delivered } as never);
+    fixture.detectChanges();
+    const link = (fixture.nativeElement as HTMLElement).querySelector('a[href*="returnOf=b1"]');
+    expect(link?.textContent).toContain('Book a return pickup');
+
+    fixture.componentInstance.booking.set({ ...fixture.componentInstance.booking()!, returnOfBookingId: 'b0' } as never);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).not.toContain('Book a return pickup');
+    expect(fixture.nativeElement.textContent).toContain('Return pickup');
+  });
+
   it('offers Cancel only when the server says the booking can still be cancelled', () => {
     const fixture = create('BOOKED');
     http.expectOne('/api/v1/customer-portal/bookings/b1/tracking').flush({ data: { available: false, events: [], retrievedAt: '' } });

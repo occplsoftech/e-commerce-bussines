@@ -7,10 +7,10 @@ import { BookingSteps } from './booking-steps';
 import { BannerChip, RouteBanner } from './route-banner';
 import { PhotoPicker } from './photo-picker';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PortalService } from '@core/services/portal.service';
-import { PortalAddress } from '@core/models/portal.model';
+import { BookingDetail, PortalAddress } from '@core/models/portal.model';
 import { differentAddresses, mobileValidator, normaliseMobile, pincodeValidator, positiveNumber, wholeNumber } from './booking-validators';
 
 /**
@@ -31,8 +31,8 @@ function packageOf(p: Record<string, unknown>): ShipmentDraft['package'] {
     <section class="page">
       <div class="page__head" data-icon="add_box">
         <div>
-          <h1 class="text-display">Book a shipment</h1>
-          <p class="text-caption">Tell us where it is going and what it is. Fields marked * are required.</p>
+          <h1 class="text-display">{{ returnOf() ? 'Book a return pickup' : 'Book a shipment' }}</h1>
+          <p class="text-caption">{{ returnOf() ? 'We collect the parcel from your buyer and bring it back to you, on OCCPL Network. Prepaid from your wallet.' : 'Tell us where it is going and what it is. Fields marked * are required.' }}</p>
         </div>
       </div>
 
@@ -124,11 +124,11 @@ function packageOf(p: Record<string, unknown>): ShipmentDraft['package'] {
                 <span class="pay__ico"><ecb-icon name="account_balance_wallet" /></span>
                 <span><strong>Prepaid</strong><small>Freight comes from your wallet when you book</small></span>
               </button>
-              <button type="button" role="radio" [attr.aria-checked]="mode() === 'TOPAY'" [class.on]="mode() === 'TOPAY'" (click)="setMode('TOPAY')">
+              <button type="button" role="radio" [attr.aria-checked]="mode() === 'TOPAY'" [class.on]="mode() === 'TOPAY'" [disabled]="!!returnOf()" (click)="setMode('TOPAY')">
                 <span class="pay__ico"><ecb-icon name="sell" /></span>
                 <span><strong>To Pay</strong><small>The receiver pays the freight on delivery (OCCPL Network only)</small></span>
               </button>
-              <button type="button" role="radio" [attr.aria-checked]="mode() === 'COD'" [class.on]="mode() === 'COD'" (click)="setMode('COD')">
+              <button type="button" role="radio" [attr.aria-checked]="mode() === 'COD'" [class.on]="mode() === 'COD'" [disabled]="!!returnOf()" (click)="setMode('COD')">
                 <span class="pay__ico"><ecb-icon name="payments" /></span>
                 <span><strong>Cash on delivery</strong><small>The receiver pays the shipment value on delivery</small></span>
               </button>
@@ -203,6 +203,9 @@ export class NewShipment implements OnInit {
   private readonly drafts = inject(BookingDraftService);
   private readonly portal = inject(PortalService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  /** The delivered booking this return pickup brings back; null for a normal booking. */
+  readonly returnOf = signal<string | null>(null);
   /** Saved addresses offered in each half of the form; loading them is optional. */
   readonly pickupAddresses = signal<PortalAddress[]>([]);
   readonly deliveryAddresses = signal<PortalAddress[]>([]);
@@ -261,7 +264,10 @@ export class NewShipment implements OnInit {
     c.setValue(Math.max(1, Math.min(999, Number(c.value ?? 1) + by)));
     c.markAsDirty();
   }
-  protected setMode(m: 'PREPAID' | 'COD' | 'TOPAY'): void { this.form.controls.package.controls.paymentMode.setValue(m); }
+  protected setMode(m: 'PREPAID' | 'COD' | 'TOPAY'): void {
+    if (this.returnOf() && m !== 'PREPAID') return; // a return pickup is prepaid from the wallet
+    this.form.controls.package.controls.paymentMode.setValue(m);
+  }
   protected setUnit(u: 'CM' | 'IN'): void { this.form.controls.package.controls.dimensionUnit.setValue(u); }
 
   constructor() {
@@ -281,12 +287,36 @@ export class NewShipment implements OnInit {
   }
 
   ngOnInit(): void {
+    const ret = this.route.snapshot.queryParamMap.get('returnOf');
+    if (ret) this.startReturn(ret);
     this.portal.addresses().subscribe({
       next: (list) => {
         this.pickupAddresses.set(list.filter((a) => a.addressUsage !== 'DELIVERY'));
         this.deliveryAddresses.set(list.filter((a) => a.addressUsage !== 'PICKUP'));
       },
       error: () => undefined
+    });
+  }
+
+  /** A return pickup: the buyer becomes the pickup, the customer's own address the delivery; same parcel; prepaid only. */
+  private startReturn(bookingId: string): void {
+    this.returnOf.set(bookingId);
+    this.portal.booking(bookingId).subscribe({
+      next: (b) => {
+        const party = (p: BookingDetail['pickup']) => ({ name: p.name ?? '', phone: p.phone ?? '', address: p.address ?? '',
+          pincode: p.pincode ?? '', city: p.city ?? '', state: p.state ?? '' });
+        const parcel = b.parcel;
+        this.form.patchValue({
+          pickup: party(b.delivery), delivery: party(b.pickup),
+          package: {
+            actualWeightKg: parcel?.actualWeightKg ?? null, length: parcel?.length ?? null, breadth: parcel?.breadth ?? null,
+            height: parcel?.height ?? null, dimensionUnit: parcel?.dimensionUnit === 'IN' ? 'IN' : 'CM',
+            packageCount: parcel?.packageCount ?? 1, contents: parcel?.contents ?? '', declaredValue: parcel?.declaredValue ?? null,
+            paymentMode: 'PREPAID', codAmount: null
+          }
+        });
+      },
+      error: () => this.notice.set('The original booking could not be loaded. Fill in the details below.')
     });
   }
 
@@ -315,7 +345,8 @@ export class NewShipment implements OnInit {
     const draft: ShipmentDraft = {
       pickup: { ...v.pickup, phone: normaliseMobile(v.pickup.phone) },
       delivery: { ...v.delivery, phone: normaliseMobile(v.delivery.phone) },
-      package: packageOf(v.package)
+      package: packageOf(this.returnOf() ? { ...v.package, paymentMode: 'PREPAID' } : v.package),
+      returnOfBookingId: this.returnOf()
     };
     this.drafts.save(draft);
     this.comparing.set(true);

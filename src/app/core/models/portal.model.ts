@@ -204,6 +204,8 @@ export interface BookingSummary {
   createdAt: string;
   bookedAt: string | null;
   deliveryStatus?: DeliveryInfo | null;
+  /** A return pickup (collected from the buyer, brought back to you). */
+  returnPickup?: boolean;
 }
 
 export interface BookingParty { name: string | null; phone: string | null; address: string | null; pincode: string | null; city: string | null; state: string | null; }
@@ -263,6 +265,8 @@ export interface BookingDetail {
   /** Returned to the sender: what the wallet was charged for the return (the forward freight), and when. */
   rtoCharge?: number | null;
   rtoChargedAt?: string | null;
+  /** A return pickup: the delivered booking it brings back. */
+  returnOfBookingId?: string | null;
 }
 
 /** A failed delivery attempt: why, how many, and what the customer chose (REATTEMPT, CHANGE_ADDRESS, RETURN). */
