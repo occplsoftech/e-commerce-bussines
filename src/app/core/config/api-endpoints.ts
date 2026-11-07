@@ -12,6 +12,7 @@ export const API = {
   portal: {
     profile: '/customer-portal/profile',
     dashboard: '/customer-portal/dashboard',
+    dashboardInsights: '/customer-portal/dashboard/insights',
     pincode: (pincode: string) => `/customer-portal/pincodes/${encodeURIComponent(pincode)}`,
     compareRates: '/customer-portal/rates/compare',
     estimateRates: '/customer-portal/rates/estimate',

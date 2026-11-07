@@ -64,6 +64,31 @@ export interface PortalShipment {
   createdAt: string;
 }
 
+export type InsightsPeriod = 'LAST_7_DAYS' | 'LAST_30_DAYS' | 'LAST_90_DAYS' | 'THIS_MONTH';
+
+/** GET /customer-portal/dashboard/insights: every booking of the period, any courier. */
+export interface DashboardInsights {
+  period: InsightsPeriod;
+  from: string;
+  to: string;
+  shipments: number;
+  spend: number;
+  averageSpend: number;
+  /** Delivered within the courier's promise, over `onTimeMeasured` delivered bookings that had one; null when none. */
+  onTimePercent: number | null;
+  onTimeMeasured: number;
+  needAttention: number;
+  spendSeries: { date: string; spend: number; shipments: number }[];
+  /** Bookings by where the parcel is: AWAITING_PICKUP, PICKED_UP, IN_TRANSIT, OUT_FOR_DELIVERY, DELIVERED, RETURNED. */
+  stages: Record<string, number>;
+  couriers: { providerCode: string; providerName: string; shipments: number; spend: number; onTimePercent: number | null }[];
+  late: { bookingId: string; trackingNumber: string | null; providerName: string; deliveryName: string | null; lastStatus: string | null;
+    promisedBy: string; daysLate: number }[];
+  lateCount: number;
+  needAnswer: { bookingId: string; trackingNumber: string | null; providerName: string; deliveryName: string | null }[];
+  needAnswerCount: number;
+}
+
 export interface PortalDashboard {
   totalShipments: number;
   pendingBookings: number;
