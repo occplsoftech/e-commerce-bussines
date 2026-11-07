@@ -40,6 +40,9 @@ function isoDate(days: number): string {
             @if (b.status === 'BOOKED' || b.status === 'OUTCOME_UNKNOWN') {
               <button class="btn btn--ghost" type="button" (click)="printLabel()"><ecb-icon name="print" /> Print label</button>
             }
+            @if (returnable(b)) {
+              <a class="btn btn--ghost" routerLink="/book" [queryParams]="{ returnOf: b.bookingId }"><ecb-icon name="undo" /> Book a return pickup</a>
+            }
             @if (b.cancellable) {
               <button class="btn btn--ghost" type="button" (click)="confirmingCancel.set(true)" [disabled]="confirmingCancel() || cancelling()"><ecb-icon name="cancel" /> Cancel booking</button>
             }
@@ -102,6 +105,10 @@ function isoDate(days: number): string {
                 @if (b.transportMode) { <div><dt>Mode</dt><dd>{{ b.transportMode | titlecaseMode }}</dd></div> }
                 @if (b.etaMaxDays) { <div><dt>Estimated delivery</dt><dd>{{ eta(b) }}</dd></div> }
                 <div><dt>Booking ID</dt><dd class="mono small">{{ b.bookingId }}</dd></div>
+                @if (b.returnOfBookingId) {
+                  <div><dt>Return pickup</dt><dd>Collected from your buyer and brought back to you ·
+                    <a [routerLink]="['/shipments', b.returnOfBookingId]">original shipment</a></dd></div>
+                }
                 @if (b.codAmount) {
                   <div><dt>Cash on delivery</dt><dd>{{ b.codAmount | currency: b.currency : 'symbol' : '1.2-2' }}
                     <span class="small cod-state">@if (b.codCollectedAt) { · collected {{ b.codCollectedAt | date: 'd MMM' }}, credited to your wallet } @else { · to be collected on delivery }</span></dd></div>
@@ -456,6 +463,11 @@ ${!pod.photoUrl && !pod.signatureUrl ? '<p class="muted">No photo or signature o
   }
   readonly showLabel = signal(false);
   private readonly sheet = viewChild(LabelSheet);
+
+  /** A delivered booking (not itself a return) can be picked up back from the buyer, on OCCPL Network. */
+  returnable(b: Detail): boolean {
+    return b.status === 'BOOKED' && b.deliveryStatus?.stage === 'DELIVERED' && !b.returnOfBookingId;
+  }
 
   /** Print the label again: our own label (Code 128 of the reference), four to an A4 sheet. */
   printLabel(): void {

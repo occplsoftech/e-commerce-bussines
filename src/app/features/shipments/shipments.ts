@@ -106,7 +106,7 @@ const EMPTY: BookingFilter = { status: '', delivery: '', provider: '', from: '',
                       <div class="sub">{{ b.createdAt | date: 'shortTime' }}</div></td>
                     <td><span class="prov"><ecb-courier-logo [code]="b.providerCode" [name]="b.providerName" style="--logo-size:2rem" /><span>{{ b.providerName }}@if (b.serviceName) { <div class="sub">{{ b.serviceName }}</div> }</span></span></td>
                     <td>{{ b.pickupCity || b.pickupPincode }} → {{ b.deliveryCity || b.deliveryPincode }}</td>
-                    <td>{{ b.deliveryName || '—' }}</td>
+                    <td>{{ b.deliveryName || '—' }}@if (b.returnPickup) { <span class="ret-tag">Return</span> }</td>
                     <td class="mono">{{ b.trackingNumber || '—' }}</td>
                     <td class="num num-tabular">{{ b.totalAmount | currency: b.currency : 'symbol' : '1.2-2' }}</td>
                     <td><span [class]="'badge badge--' + view(b).tone">{{ view(b).label }}</span>
@@ -120,7 +120,7 @@ const EMPTY: BookingFilter = { status: '', delivery: '', provider: '', from: '',
             @for (b of page()!.content; track b.bookingId) {
               <li>
                 <a [routerLink]="['/shipments', b.bookingId]">
-                  <div class="row"><strong>{{ b.deliveryName || 'Shipment' }}</strong><span [class]="'badge badge--' + view(b).tone">{{ view(b).label }}</span></div>
+                  <div class="row"><strong>{{ b.deliveryName || 'Shipment' }}@if (b.returnPickup) { <span class="ret-tag">Return</span> }</strong><span [class]="'badge badge--' + view(b).tone">{{ view(b).label }}</span></div>
                   <div class="sub">{{ b.pickupCity || b.pickupPincode }} → {{ b.deliveryCity || b.deliveryPincode }} · {{ b.providerName }}</div>
                   <div class="row sub"><span>{{ b.createdAt | date: 'mediumDate' }}</span><span>{{ b.totalAmount | currency: b.currency : 'symbol' : '1.2-2' }}</span></div>
                 </a>
@@ -137,6 +137,7 @@ const EMPTY: BookingFilter = { status: '', delivery: '', provider: '', from: '',
     </section>
   `,
   styles: [`
+    .ret-tag { display:inline-block; margin-left:6px; padding:1px 6px; border-radius:999px; background:var(--warning-bg, #fff4e0); color:var(--warning, #9a5b00); font:700 10px var(--font-sans, inherit); letter-spacing:.04em; vertical-align:middle; }
     .filters { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:12px 16px; align-items:end; padding:16px 18px; margin-bottom:16px; }
     .filters .field { margin:0; }
     .filters input, .filters select { width:100%; }

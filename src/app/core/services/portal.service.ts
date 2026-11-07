@@ -21,7 +21,8 @@ export class PortalService {
 
   /** Asks the server to price the draft with every courier. The draft carries no price; the server does all pricing. */
   compareRates(draft: ShipmentDraft): Observable<RateQuote> {
-    return this.api.post<RateQuote>(API.portal.compareRates, { pickup: draft.pickup, delivery: draft.delivery, pkg: draft.package });
+    return this.api.post<RateQuote>(API.portal.compareRates, { pickup: draft.pickup, delivery: draft.delivery, pkg: draft.package,
+      ...(draft.returnOfBookingId ? { returnOfBookingId: draft.returnOfBookingId } : {}) });
   }
 
   /** Rate calculator: prices from pincodes and a package only. Nothing is stored; the options cannot be booked as they are. */
