@@ -4,7 +4,7 @@ import { ApiService } from './api.service';
 import { API } from '../config/api-endpoints';
 import {
   AddressRequest, EstimateRequest, InternationalCountry, InternationalEstimateRequest, SubCustomer, SubCustomerRequest, Booking, BookingDetail, BookingPhoto, BookingFilter, BookingSummary, Page, PincodeInfo, PortalAddress,
-  PortalDashboard, PortalProfile, RateQuote, ShipmentTracking, TrackingView
+  DashboardInsights, InsightsPeriod, PortalDashboard, PortalProfile, RateQuote, ShipmentTracking, TrackingView
 } from '../models/portal.model';
 import { ShipmentDraft } from '@features/booking/booking-draft.service';
 
@@ -15,6 +15,10 @@ export class PortalService {
 
   profile(): Observable<PortalProfile> { return this.api.get<PortalProfile>(API.portal.profile); }
   dashboard(): Observable<PortalDashboard> { return this.api.get<PortalDashboard>(API.portal.dashboard); }
+  /** Spend, where the parcels are, on-time, courier split and late shipments for a period (all couriers). */
+  insights(period: InsightsPeriod): Observable<DashboardInsights> {
+    return this.api.get<DashboardInsights>(API.portal.dashboardInsights, { period });
+  }
   /** The logos the company uploaded for its couriers, by courier code (data URLs). */
   courierLogos(): Observable<Record<string, string>> { return this.api.get<Record<string, string>>(API.portal.courierLogos); }
   pincode(pincode: string): Observable<PincodeInfo> { return this.api.get<PincodeInfo>(API.portal.pincode(pincode)); }
