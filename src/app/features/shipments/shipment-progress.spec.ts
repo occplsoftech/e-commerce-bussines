@@ -46,10 +46,22 @@ describe('shipment progress', () => {
       ['placed:done', 'booked:done', 'picked:done', 'transit:done', 'ofd:done', 'delivered:done']);
   });
 
-  it('returned: the flow stops where it got to and ends in red', () => {
-    expect(states(shipmentProgress(booking(), tracking('RTO Initiated', [
-      ['RTO Initiated', '2026-10-23T10:00:00Z'], ['Out for delivery', '2026-10-22T10:00:00Z']])))).toEqual(
-      ['placed:done', 'booked:done', 'picked:done', 'transit:done', 'ofd:done', 'returned:bad']);
+  it('returning: the flow stops where it got to and ends in amber "Returning to you", with the return charge', () => {
+    const steps = shipmentProgress(booking({ rtoCharge: 110 }), tracking('RTO Initiated', [
+      ['RTO Initiated', '2026-10-23T10:00:00Z'], ['Out for delivery', '2026-10-22T10:00:00Z']]));
+    expect(states(steps)).toEqual(['placed:done', 'booked:done', 'picked:done', 'transit:done', 'ofd:done', 'returned:warn']);
+    const last = steps[steps.length - 1];
+    expect(last.label).toBe('Returning to you');
+    expect(last.note).toBe('Return charge ₹110.00 taken from your wallet');
+  });
+
+  it('returned: once the courier (or our branch) says it is back, it ends in red "Returned to you"', () => {
+    const courier = shipmentProgress(booking(), tracking('RTO Delivered', [
+      ['RTO Delivered', '2026-10-25T10:00:00Z'], ['RTO Initiated', '2026-10-23T10:00:00Z']]));
+    expect(courier[courier.length - 1]).toEqual(expect.objectContaining({ label: 'Returned to you', state: 'bad' }));
+    const ours = shipmentProgress(booking({ providerCode: 'OCCPL_NETWORK' }), tracking('Returned to you (RTO delivered)', [
+      ['Returned', '2026-10-25T10:00:00Z'], ['In Scan', '2026-10-21T10:00:00Z']]));
+    expect(ours[ours.length - 1].label).toBe('Returned to you');
   });
 
   it('without a live answer, uses the status the server last saved', () => {

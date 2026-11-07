@@ -260,6 +260,9 @@ export interface BookingDetail {
   /** COD: the amount the courier collects from the receiver, and when it was credited to the wallet (OCCPL Network). */
   codAmount?: number | null;
   codCollectedAt?: string | null;
+  /** Returned to the sender: what the wallet was charged for the return (the forward freight), and when. */
+  rtoCharge?: number | null;
+  rtoChargedAt?: string | null;
 }
 
 /** A failed delivery attempt: why, how many, and what the customer chose (REATTEMPT, CHANGE_ADDRESS, RETURN). */

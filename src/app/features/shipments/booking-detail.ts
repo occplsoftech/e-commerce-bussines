@@ -106,6 +106,10 @@ function isoDate(days: number): string {
                   <div><dt>Cash on delivery</dt><dd>{{ b.codAmount | currency: b.currency : 'symbol' : '1.2-2' }}
                     <span class="small cod-state">@if (b.codCollectedAt) { · collected {{ b.codCollectedAt | date: 'd MMM' }}, credited to your wallet } @else { · to be collected on delivery }</span></dd></div>
                 }
+                @if (b.rtoCharge) {
+                  <div><dt>Return charge (RTO)</dt><dd>{{ b.rtoCharge | currency: b.currency : 'symbol' : '1.2-2' }}
+                    <span class="small cod-state"> · the forward freight, taken from your wallet@if (b.rtoChargedAt) { on {{ b.rtoChargedAt | date: 'd MMM' }} }</span></dd></div>
+                }
               </dl>
             </article>
 

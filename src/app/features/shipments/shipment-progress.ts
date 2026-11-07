@@ -78,9 +78,15 @@ export function shipmentProgress(b: BookingDetail, t: TrackingView | null | unde
     steps.push({ ...META[s], state: reached ? (RANK[s] === topRank && s !== 'DELIVERED' && !ended ? 'current' : 'done') : 'todo',
       at: reached ? reachedAt.get(s) ?? null : null });
   }
-  if (ended) {
-    steps.push({ key: top.toLowerCase(), label: top === 'RETURNED' ? 'Returned to origin' : 'Cancelled',
-      icon: top === 'RETURNED' ? 'undo' : 'block', state: 'bad', at: reachedAt.get(top) ?? null });
+  if (ended && top === 'RETURNED') {
+    // A return is "returning" until the courier (or our branch) says it is back with the sender.
+    const said = `${t?.status ?? ''} ${b.deliveryStatus?.text ?? ''}`.toLowerCase();
+    const back = /\bdelivered\b|returned to you/.test(said);
+    const charge = b.rtoCharge ? `Return charge ₹${b.rtoCharge.toFixed(2)} taken from your wallet` : undefined;
+    steps.push({ key: 'returned', label: back ? 'Returned to you' : 'Returning to you', icon: 'undo', state: back ? 'bad' : 'warn',
+      at: reachedAt.get(top) ?? null, note: charge });
+  } else if (ended) {
+    steps.push({ key: 'cancelled', label: 'Cancelled', icon: 'block', state: 'bad', at: reachedAt.get(top) ?? null });
   }
   if (topRank === RANK.BOOKED && !ended) {
     steps[1] = { ...steps[1], state: 'current', note: 'Waiting for pickup' };
