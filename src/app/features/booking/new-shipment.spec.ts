@@ -108,3 +108,36 @@ describe('NewShipment as a return pickup', () => {
     req.flush({ data: { quoteId: 'q9' } });
   });
 });
+
+describe('NewShipment for an inbox order', () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([]),
+      { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: convertToParamMap({ order: 'o1' }) } } }] });
+  });
+
+  it('fills the buyer, parcel and COD from the order and sends the order with the quote', () => {
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const f = TestBed.createComponent(NewShipment);
+    f.detectChanges();
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/v1/customer-portal/orders/o1').flush({ data: {
+      id: 'o1', orderNumber: 'WEB-1001', status: 'NEW',
+      buyer: { name: 'Ravi', phone: '9876543210', address: '12 MG Road, Camp, Pune', pincode: '411001', city: 'Pune', state: 'Maharashtra' },
+      parcel: { weightKg: 0.8, lengthCm: 20, breadthCm: 15, heightCm: 10, count: 1, contents: 'Shirts', declaredValue: 998 },
+      payment: { mode: 'COD', codAmount: 998 } } });
+    http.match(() => true).forEach((r) => r.flush({ data: [] }));
+    f.detectChanges();
+    const c = f.componentInstance;
+    expect((f.nativeElement as HTMLElement).textContent).toContain('Book order WEB-1001');
+    expect(c.form.getRawValue().delivery.name).toBe('Ravi');
+    expect(c.form.getRawValue().package.paymentMode).toBe('COD');
+
+    c.form.patchValue({ pickup: { name: 'Test Shop', phone: '9876500000', address: 'Model Colony, Pune', pincode: '411016', city: 'Pune', state: 'Maharashtra' } });
+    c.compare();
+    const req = http.expectOne('/api/v1/customer-portal/rates/compare');
+    expect(req.request.body.orderId).toBe('o1');
+    expect(req.request.body.pkg.codAmount).toBe(998);
+    req.flush({ data: { quoteId: 'q1' } });
+  });
+});

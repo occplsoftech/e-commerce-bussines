@@ -29,6 +29,8 @@ export interface ShipmentDraft {
   package: PackageDetails;
   /** A return pickup of this delivered booking (OCCPL Network, prepaid). */
   returnOfBookingId?: string | null;
+  /** The inbox order this booking is for (it is marked booked when the booking succeeds). */
+  orderId?: string | null;
 }
 
 const KEY = 'ecb.booking.draft';

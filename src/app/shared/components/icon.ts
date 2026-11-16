@@ -3,6 +3,8 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 /** Stroke paths (24×24 grid) for every icon the portal uses — inline SVG, no icon font or external request. */
 const PATHS: Record<string, string> = {
   add: 'M12 5v14M5 12h14',
+  inbox: 'M4 13l2.5-8h11L20 13M4 13v6h16v-6M4 13h5l1 2h4l1-2h5',
+  key: 'M14.5 10a4.5 4.5 0 1 0-4.4 4.5L8 16.6V19H5.5v2H3v-3.5l6.6-6.6A4.5 4.5 0 0 0 14.5 10zM16 8h.01',
   close: 'M6 6l12 12M18 6L6 18',
   menu: 'M4 7h16M4 12h16M4 17h16',
   arrow_forward: 'M5 12h14M13 6l6 6-6 6',
