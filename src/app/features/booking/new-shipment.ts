@@ -11,6 +11,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PortalService } from '@core/services/portal.service';
 import { BookingDetail, PortalAddress } from '@core/models/portal.model';
+import { OrdersService } from '@features/orders/orders.service';
 import { differentAddresses, mobileValidator, normaliseMobile, pincodeValidator, positiveNumber, wholeNumber } from './booking-validators';
 
 /**
@@ -31,8 +32,10 @@ function packageOf(p: Record<string, unknown>): ShipmentDraft['package'] {
     <section class="page">
       <div class="page__head" data-icon="add_box">
         <div>
-          <h1 class="text-display">{{ returnOf() ? 'Book a return pickup' : 'Book a shipment' }}</h1>
-          <p class="text-caption">{{ returnOf() ? 'We collect the parcel from your buyer and bring it back to you, on OCCPL Network. Prepaid from your wallet.' : 'Tell us where it is going and what it is. Fields marked * are required.' }}</p>
+          <h1 class="text-display">{{ returnOf() ? 'Book a return pickup' : orderNumber() ? 'Book order ' + orderNumber() : 'Book a shipment' }}</h1>
+          <p class="text-caption">{{ returnOf() ? 'We collect the parcel from your buyer and bring it back to you, on OCCPL Network. Prepaid from your wallet.'
+            : orderNumber() ? 'Filled in from your order. Check the pickup address and the parcel, then compare rates.'
+            : 'Tell us where it is going and what it is. Fields marked * are required.' }}</p>
         </div>
       </div>
 
@@ -204,8 +207,12 @@ export class NewShipment implements OnInit {
   private readonly portal = inject(PortalService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly orders = inject(OrdersService);
   /** The delivered booking this return pickup brings back; null for a normal booking. */
   readonly returnOf = signal<string | null>(null);
+  /** The inbox order being booked (13.3); null otherwise. */
+  readonly orderId = signal<string | null>(null);
+  readonly orderNumber = signal<string | null>(null);
   /** Saved addresses offered in each half of the form; loading them is optional. */
   readonly pickupAddresses = signal<PortalAddress[]>([]);
   readonly deliveryAddresses = signal<PortalAddress[]>([]);
@@ -289,6 +296,8 @@ export class NewShipment implements OnInit {
   ngOnInit(): void {
     const ret = this.route.snapshot.queryParamMap.get('returnOf');
     if (ret) this.startReturn(ret);
+    const order = this.route.snapshot.queryParamMap.get('order');
+    if (order && !ret) this.startOrder(order);
     this.portal.addresses().subscribe({
       next: (list) => {
         this.pickupAddresses.set(list.filter((a) => a.addressUsage !== 'DELIVERY'));
@@ -320,6 +329,25 @@ export class NewShipment implements OnInit {
     });
   }
 
+  /** Booking an inbox order: the buyer, parcel and payment come from the order; the pickup is the customer's own (as last used). */
+  private startOrder(id: string): void {
+    this.orderId.set(id);
+    this.orders.get(id).subscribe({
+      next: (o) => {
+        this.orderNumber.set(o.orderNumber);
+        this.form.patchValue({
+          delivery: { name: o.buyer.name, phone: o.buyer.phone, address: o.buyer.address, pincode: o.buyer.pincode,
+            city: o.buyer.city ?? '', state: o.buyer.state ?? '' },
+          package: { actualWeightKg: o.parcel.weightKg, length: o.parcel.lengthCm, breadth: o.parcel.breadthCm, height: o.parcel.heightCm,
+            dimensionUnit: 'CM', packageCount: o.parcel.count, contents: o.parcel.contents, declaredValue: o.parcel.declaredValue,
+            paymentMode: o.payment.mode, codAmount: o.payment.mode === 'COD' ? o.payment.codAmount : null }
+        });
+        if (o.status !== 'NEW') this.notice.set(`Order ${o.orderNumber} is already ${o.status.toLowerCase()}.`);
+      },
+      error: () => this.notice.set('The order could not be loaded.')
+    });
+  }
+
   bad(path: string): boolean {
     const c = this.form.get(path)!;
     return c.invalid && (c.touched || c.dirty);
@@ -346,7 +374,8 @@ export class NewShipment implements OnInit {
       pickup: { ...v.pickup, phone: normaliseMobile(v.pickup.phone) },
       delivery: { ...v.delivery, phone: normaliseMobile(v.delivery.phone) },
       package: packageOf(this.returnOf() ? { ...v.package, paymentMode: 'PREPAID' } : v.package),
-      returnOfBookingId: this.returnOf()
+      returnOfBookingId: this.returnOf(),
+      orderId: this.orderId()
     };
     this.drafts.save(draft);
     this.comparing.set(true);
