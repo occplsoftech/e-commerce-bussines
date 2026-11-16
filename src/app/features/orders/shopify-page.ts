@@ -43,7 +43,7 @@ import { OrdersService, ShopConnection, ShopImportResult } from './orders.servic
             <div><dt>Connected</dt><dd>{{ c.connectedAt | date: 'd MMM y' }}</dd></div>
           </dl>
           @if (result(); as r) {
-            <p class="alert" [class.alert--error]="r.error" role="status">
+            <p class="alert" [class.alert--error]="r.error" [class.alert--ok]="!r.error" role="status">
               @if (r.error) { {{ r.error }} }
               @else { Checked {{ r.checked }} open order{{ r.checked === 1 ? '' : 's' }}: {{ r.imported }} new, {{ r.alreadyIn }} already in, {{ r.skipped }} could not be imported. }
             </p>

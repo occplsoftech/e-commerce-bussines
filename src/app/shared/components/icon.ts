@@ -10,6 +10,7 @@ const PATHS: Record<string, string> = {
   menu: 'M4 7h16M4 12h16M4 17h16',
   arrow_forward: 'M5 12h14M13 6l6 6-6 6',
   arrow_back: 'M19 12H5M11 6l-6 6 6 6',
+  receipt_long: 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h4',
   refresh: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7',
   print: 'M7 9V4h10v5M7 17H5a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-2M7 14h10v6H7z',
   visibility: 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
