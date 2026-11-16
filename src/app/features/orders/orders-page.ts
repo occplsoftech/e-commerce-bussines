@@ -93,7 +93,7 @@ import { OrderCounts, OrderQuoteRow, OrderStatus, OrdersService, PortalOrder } f
                   @for (o of orders(); track o.id) {
                     <tr>
                       @if (tab() === 'NEW') { <td><input type="checkbox" [checked]="picked().has(o.id)" (change)="toggle(o.id)" [attr.aria-label]="'Select ' + o.orderNumber" /></td> }
-                      <td class="mono">{{ o.orderNumber }}<span class="sub">{{ o.items?.length ? o.items!.length + ' item' + (o.items!.length === 1 ? '' : 's') : o.parcel.contents }}</span></td>
+                      <td class="mono">{{ o.orderNumber }}@if (o.source === 'SHOPIFY') { <span class="badge src">Shopify</span> }<span class="sub">{{ o.items?.length ? o.items!.length + ' item' + (o.items!.length === 1 ? '' : 's') : o.parcel.contents }}</span></td>
                       <td>{{ o.receivedAt | date: 'd MMM, h:mm a' }}</td>
                       <td>{{ o.buyer.name }}<span class="sub">{{ o.buyer.city || '' }} {{ o.buyer.pincode }}</span></td>
                       <td>@if (o.payment.mode === 'COD') { <span class="badge badge--warn">COD {{ o.payment.codAmount | currency: 'INR' : 'symbol' : '1.0-0' }}</span> } @else { <span class="badge">Prepaid</span> }</td>
@@ -106,6 +106,8 @@ import { OrderCounts, OrderQuoteRow, OrderStatus, OrdersService, PortalOrder } f
                           }
                           @case ('BOOKED') {
                             @if (o.bookingId) { <a [routerLink]="['/shipments', o.bookingId]" class="mono">{{ o.trackingNumber || 'View shipment' }}</a> }
+                            @if (o.shopSync === 'SENT') { <span class="sub">Sent to Shopify</span> }
+                            @else if (o.shopSync === 'FAILED') { <span class="sub warn" [title]="o.shopSyncError || ''">Not sent to Shopify: {{ o.shopSyncError }}</span> }
                           }
                           @default { <button class="btn btn--ghost btn--sm" type="button" (click)="restore(o)">Restore</button> }
                         }
@@ -139,6 +141,8 @@ import { OrderCounts, OrderQuoteRow, OrderStatus, OrdersService, PortalOrder } f
     td { padding:12px 16px; border-top:1px solid var(--surface-border); vertical-align:top; }
     .num { text-align:right; }
     .sub { display:block; font-size:12px; color:var(--content-muted); }
+    .sub.warn { color:var(--warning); }
+    .badge.src { margin-left:6px; font-family:var(--font-sans); font-size:11px; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
     .actions { white-space:nowrap; text-align:right; }
     .actions .btn + .btn { margin-left:6px; }

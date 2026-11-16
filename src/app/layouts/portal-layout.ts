@@ -131,6 +131,7 @@ export class PortalLayout {
     { path: '/wallet', label: 'Wallet', icon: 'account_balance_wallet' },
     { path: '/invoices', label: 'Invoices', icon: 'receipt_long' },
     { path: '/kyc', label: 'KYC', icon: 'verified_user' },
+    { path: '/connections/shopify', label: 'Shopify store', icon: 'cart' },
     { path: '/developer', label: 'Developer API', icon: 'key' },
     { path: '/profile', label: 'Profile', icon: 'storefront' }
   ];
