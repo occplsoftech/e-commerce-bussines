@@ -32,6 +32,7 @@ export const routes: Routes = [
       { path: 'customers', loadComponent: () => import('@features/customers/customers').then((m) => m.Customers), title: 'My customers · OCCPL SOFTECH' },
       { path: 'customers/:id', loadComponent: () => import('@features/customers/customer-detail').then((m) => m.CustomerDetail), title: 'Customer · OCCPL SOFTECH' },
       { path: 'orders', loadComponent: () => import('@features/orders/orders-page').then((m) => m.OrdersPage), title: 'Orders to ship · OCCPL SOFTECH' },
+      { path: 'connections/shopify', loadComponent: () => import('@features/orders/shopify-page').then((m) => m.ShopifyPage), title: 'Shopify store · OCCPL SOFTECH' },
       { path: 'developer', loadComponent: () => import('@features/orders/developer-page').then((m) => m.DeveloperPage), title: 'Developer API · OCCPL SOFTECH' },
       { path: 'invoices', loadComponent: () => import('@features/invoices/invoices-page').then((m) => m.InvoicesPage), title: 'Invoices · OCCPL SOFTECH' },
       { path: 'wallet', loadComponent: () => import('@features/wallet/wallet-page').then((m) => m.WalletPage), title: 'Wallet · OCCPL SOFTECH' },

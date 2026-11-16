@@ -14,6 +14,8 @@ export interface PortalOrder {
   payment: { mode: 'PREPAID' | 'COD'; codAmount: number | null };
   items: { name: string; quantity: number; price?: number }[] | null;
   notes: string | null; receivedAt: string; bookingId: string | null; bookedAt: string | null; trackingNumber: string | null; courier: string | null;
+  /** SENT / FAILED: the tracking number sent back to the store (Shopify orders). */
+  shopSync: 'SENT' | 'FAILED' | null; shopSyncError: string | null;
 }
 export interface OrderCounts { newOrders: number; booked: number; archived: number; }
 /** One order priced for booking (the business rate, else the cheapest allowed courier). */
@@ -22,6 +24,12 @@ export interface OrderQuoteRow {
   quoteId: string | null; optionId: string | null; providerCode: string | null; providerName: string | null; serviceName: string | null;
   basis: string | null; total: number | null;
 }
+export interface ShopSkipped { orderNumber: string; reason: string; at: string; }
+export interface ShopConnection {
+  id: string; platform: 'SHOPIFY'; shopDomain: string; shopName: string | null; paused: boolean; fulfilBack: boolean; connectedAt: string;
+  lastImportAt: string | null; importedCount: number; lastError: string | null; skipped: ShopSkipped[];
+}
+export interface ShopImportResult { checked: number; imported: number; alreadyIn: number; skipped: number; error: string | null; }
 export interface ApiKeyView { id: string; name: string; keyPrefix: string; createdAt: string; lastUsedAt: string | null; revokedAt: string | null; }
 export interface CreatedApiKey { view: ApiKeyView; key: string; }
 
@@ -37,6 +45,14 @@ export class OrdersService {
   archive(id: string): Observable<PortalOrder> { return this.api.post<PortalOrder>(`${API.portal.order(id)}/archive`, {}); }
   restore(id: string): Observable<PortalOrder> { return this.api.post<PortalOrder>(`${API.portal.order(id)}/restore`, {}); }
   quote(orderIds: string[]): Observable<OrderQuoteRow[]> { return this.api.post<OrderQuoteRow[]>(`${API.portal.orders}/quote`, { orderIds }); }
+
+  shopify(): Observable<ShopConnection | null> { return this.api.get<ShopConnection | null>(API.portal.shopify); }
+  connectShopify(shopDomain: string, accessToken: string, fulfilBack: boolean): Observable<ShopConnection> {
+    return this.api.post<ShopConnection>(API.portal.shopify, { shopDomain, accessToken, fulfilBack });
+  }
+  shopifySettings(change: { paused?: boolean; fulfilBack?: boolean }): Observable<ShopConnection> { return this.api.patch<ShopConnection>(API.portal.shopify, change); }
+  importShopify(): Observable<ShopImportResult> { return this.api.post<ShopImportResult>(`${API.portal.shopify}/import`, {}); }
+  disconnectShopify(): Observable<void> { return this.api.deleteFor<void>(API.portal.shopify); }
 
   keys(): Observable<ApiKeyView[]> { return this.api.get<ApiKeyView[]>(API.portal.apiKeys); }
   createKey(name: string): Observable<CreatedApiKey> { return this.api.post<CreatedApiKey>(API.portal.apiKeys, { name }); }

@@ -3,12 +3,14 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 /** Stroke paths (24×24 grid) for every icon the portal uses — inline SVG, no icon font or external request. */
 const PATHS: Record<string, string> = {
   add: 'M12 5v14M5 12h14',
+  cart: 'M3 4h2l2.4 11h10.8l2-8H6.2M9.5 20h.01M17.5 20h.01',
   inbox: 'M4 13l2.5-8h11L20 13M4 13v6h16v-6M4 13h5l1 2h4l1-2h5',
   key: 'M14.5 10a4.5 4.5 0 1 0-4.4 4.5L8 16.6V19H5.5v2H3v-3.5l6.6-6.6A4.5 4.5 0 0 0 14.5 10zM16 8h.01',
   close: 'M6 6l12 12M18 6L6 18',
   menu: 'M4 7h16M4 12h16M4 17h16',
   arrow_forward: 'M5 12h14M13 6l6 6-6 6',
   arrow_back: 'M19 12H5M11 6l-6 6 6 6',
+  receipt_long: 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h4',
   refresh: 'M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7',
   print: 'M7 9V4h10v5M7 17H5a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-2M7 14h10v6H7z',
   visibility: 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
