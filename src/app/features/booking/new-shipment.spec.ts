@@ -140,4 +140,20 @@ describe('NewShipment for an inbox order', () => {
     expect(req.request.body.pkg.codAmount).toBe(998);
     req.flush({ data: { quoteId: 'q1' } });
   });
+
+  it('fills an empty pickup with the customer contact and default pickup address', () => {
+    const f = TestBed.createComponent(NewShipment);
+    f.detectChanges();
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/v1/customer-portal/profile').flush({ data: {
+      companyName: 'Test Shop Traders', contactPerson: 'Shubham', mobile: '+91 98765 00000',
+      addresses: [{ id: 'a1', addressUsage: 'PICKUP', addressLine1: 'Model Colony', addressLine2: null, landmark: 'Bank Of Maharashtra',
+        pincode: '411016', city: 'Pune', defaultPickup: true, defaultDelivery: false }] } });
+    http.match(() => true).forEach((r) => r.flush({ data: [] }));
+    const pick = f.componentInstance.form.getRawValue().pickup;
+    expect(pick.name).toBe('Shubham');
+    expect(pick.phone).toBe('9876500000');
+    expect(pick.address).toBe('Model Colony, Near Bank Of Maharashtra');
+    expect(pick.pincode).toBe('411016');
+  });
 });
