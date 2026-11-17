@@ -332,6 +332,7 @@ export class NewShipment implements OnInit {
   /** Booking an inbox order: the buyer, parcel and payment come from the order; the pickup is the customer's own (as last used). */
   private startOrder(id: string): void {
     this.orderId.set(id);
+    this.fillPickupFromProfile();
     this.orders.get(id).subscribe({
       next: (o) => {
         this.orderNumber.set(o.orderNumber);
@@ -345,6 +346,28 @@ export class NewShipment implements OnInit {
         if (o.status !== 'NEW') this.notice.set(`Order ${o.orderNumber} is already ${o.status.toLowerCase()}.`);
       },
       error: () => this.notice.set('The order could not be loaded.')
+    });
+  }
+
+  /**
+   * The pickup for an order: the customer's own contact and default pickup address (as "Book selected" uses), filling only what is
+   * still empty, so a pickup typed earlier is kept.
+   */
+  private fillPickupFromProfile(): void {
+    this.portal.profile().subscribe({
+      next: (p) => {
+        const pick = this.form.controls.pickup;
+        const empty = (k: 'name' | 'phone' | 'address' | 'pincode' | 'city') => !String(pick.controls[k].value ?? '').trim();
+        const name = (p.contactPerson ?? '').trim() || (p.companyName ?? '').trim();
+        if (empty('name') && name) pick.controls.name.setValue(name.slice(0, 100));
+        if (empty('phone') && p.mobile) pick.controls.phone.setValue(normaliseMobile(p.mobile));
+        const a = p.addresses?.find((x) => x.defaultPickup) ?? p.addresses?.find((x) => x.addressUsage !== 'DELIVERY');
+        if (a && empty('address') && empty('pincode')) {
+          const line = [a.addressLine1, a.addressLine2, a.landmark ? 'Near ' + a.landmark : null].filter((x) => !!x).join(', ');
+          pick.patchValue({ address: line.slice(0, 300), pincode: a.pincode ?? '', city: a.city ?? '' });
+        }
+      },
+      error: () => undefined
     });
   }
 
