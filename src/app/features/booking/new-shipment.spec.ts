@@ -149,6 +149,11 @@ describe('NewShipment for an inbox order', () => {
       companyName: 'Test Shop Traders', contactPerson: 'Shubham', mobile: '+91 98765 00000',
       addresses: [{ id: 'a1', addressUsage: 'PICKUP', addressLine1: 'Model Colony', addressLine2: null, landmark: 'Bank Of Maharashtra',
         pincode: '411016', city: 'Pune', defaultPickup: true, defaultDelivery: false }] } });
+    http.expectOne('/api/v1/customer-portal/orders/o1').flush({ data: {
+      id: 'o1', orderNumber: 'WEB-1002', status: 'NEW',
+      buyer: { name: 'Asha', phone: '9123456780', address: 'Flat 4, Shivaji Nagar', pincode: '411005', city: 'Pune', state: 'Maharashtra' },
+      parcel: { weightKg: 1, lengthCm: 10, breadthCm: 10, heightCm: 10, count: 1, contents: 'Books', declaredValue: 500 },
+      payment: { mode: 'PREPAID', codAmount: null } } });
     http.match(() => true).forEach((r) => r.flush({ data: [] }));
     const pick = f.componentInstance.form.getRawValue().pickup;
     expect(pick.name).toBe('Shubham');
