@@ -46,7 +46,7 @@ export const API = {
     orders: '/customer-portal/orders',
     order: (id: string) => `/customer-portal/orders/${encodeURIComponent(id)}`,
     apiKeys: '/customer-portal/api-keys',
-    shopify: '/customer-portal/connections/shopify',
+    store: (platform: string) => `/customer-portal/connections/${platform}`,
     invoice: (id: string) => `/customer-portal/invoices/${encodeURIComponent(id)}`,
     invoiceStatement: '/customer-portal/invoices/statement',
     invoiceStatementExport: '/customer-portal/invoices/statement/export',
